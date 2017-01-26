@@ -9,7 +9,7 @@
 #' OBM_init('dead_animals')
 #' OBM_init('butterflies','http://localhost/biomaps')
 
-OBM_init <- function (project,domain='openbiomaps.org') {
+OBM_init <- function (project,domain='openbiomaps.org',scope=c()) {
         
     OBM <<- new.env()
     # set some default value
@@ -18,6 +18,15 @@ OBM_init <- function (project,domain='openbiomaps.org') {
     }
     OBM$token_url <- paste(domain,'/oauth/token.php',sep='')
     OBM$pds_url <- paste(domain,'/projects/',project,'/pds.php',sep='')
+    if(length(scope) > 0) {
+        OBM$scope <- scope
+    } else {
+        # default scopes
+        #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history')
+    }
+    # default client_id
+    OBM$client_id <- 'R'
 }
 
 #' Auth Function
@@ -25,8 +34,8 @@ OBM_init <- function (project,domain='openbiomaps.org') {
 #' This function allows you to connect to and OBM server.
 #' @param username Your OBM username (email)
 #' @param password Your password
-#' @param scope OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history
-#' @param client_id Default is web
+#' @param scope vector OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history
+#' @param client_id Default is R
 #' @param url OAuth2 token url OBM_init() provide it
 #' @param verbose print some messages
 #' @keywords auth
@@ -35,7 +44,7 @@ OBM_init <- function (project,domain='openbiomaps.org') {
 #' OBM_auth()
 #' token <- OBM_auth('banm@vocs.unideb.hu','12345')
 
-OBM_auth <- function (username='',password='',scope='get_form_data get_form_list get_profile get_data get_history',client_id='web',url=OBM$token_url,verbose=F) {
+OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F) {
     if ( exists('token', envir=OBM) & exists('time', envir=OBM) & (username=='' & password=='')) {
         # auto refresh token 
         z <- Sys.time()
@@ -53,6 +62,7 @@ OBM_auth <- function (username='',password='',scope='get_form_data get_form_list
             username <- readline(prompt="Enter username: ")
             password <- readline(prompt="Enter password: ")
         }
+        scope <- paste(scope, collapse = ' ')
         h <- httr::POST(url,body=list(grant_type='password',username=username,password=password,client_id=client_id,scope=scope))
         z <- Sys.time()
         j <- httr::content(h, "parsed", "application/json")
@@ -123,6 +133,7 @@ OBM_refresh_token <- function(token=OBM$token,url=OBM$token_url,client_id='web',
     j <- httr::content(h, "parsed", "application/json")
     if (exists('access_token',j)) {
         OBM$token <- j
+        z <- Sys.time()
         OBM$time <- unclass(z)
         if (verbose) {
             print(j)
