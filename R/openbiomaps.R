@@ -121,15 +121,15 @@ OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' This function allows you to refresh your OAuth2 token. It is usually a hidden function
 #' @param token
 #' url OBM_init() provide it
-#' client_id default is web
+#' client_id default is R
 #' verbose
 #' @keywords refresh
 #' @export
 #' @examples
 #' OBM_refresh_token(token)
 
-OBM_refresh_token <- function(token=OBM$token,url=OBM$token_url,client_id='web',verbose=F) {
-    h <- httr::POST(url,body=list(grant_type='refresh_token',refresh_token=token$refresh_token,client_id=client_id))
+OBM_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,client_id='R',verbose=F) {
+    h <- httr::POST(url,body=list(grant_type='refresh_token',refresh_token=token,client_id=client_id))
     j <- httr::content(h, "parsed", "application/json")
     if (exists('access_token',j)) {
         OBM$token <- j
@@ -139,10 +139,10 @@ OBM_refresh_token <- function(token=OBM$token,url=OBM$token_url,client_id='web',
             print(j)
         }
     } else {
-        if ( exists('token', envir=OBM)  & !is.null(OBM$token)) {
+        if ( exists('token', envir=OBM) & !is.null(OBM$token)) {
             rm(list=c('token'),envir=OBM)
         }
-        if ( exists('time', envir=OBM)  & !is.null(OBM$time)) {
+        if ( exists('time', envir=OBM) & !is.null(OBM$time)) {
             rm(list=c('time'),envir=OBM)
         }
         print("Authentication disconnected.")
