@@ -2,7 +2,8 @@
 #'
 #' This function allows you to initiate an OBM connection.
 #' @param project Which project?
-#' @param domain project server domain DEFAULT is openbiomaps.org
+#' @param url project server domain DEFAULT is openbiomaps.org
+#' @param verbose print some messages
 #' @keywords init
 #' @export
 #' @examples
@@ -49,11 +50,12 @@ OBM_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
 #' @param client_id Default is R
 #' @param url OAuth2 token url OBM_init() provide it
 #' @param verbose print some messages
+#' @param paranoid hide password while typing (on Linux)
 #' @keywords auth
 #' @export
 #' @examples
 #' OBM_auth()
-#' token <- OBM_auth('banm@vocs.unideb.hu','12345')
+#' token <- OBM_auth('foo@google.com','12345')
 
 OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=F) {
     if ( exists('token', envir=OBM ,inherits=F) & exists('time', envir=OBM ,inherits=F) & (username=='' & password=='')) {
@@ -127,6 +129,7 @@ get_password <- function() {
 #' @param condition A text condition based on column in your table
 #' @param token OBM_init() provide it
 #' @param url OBM_init() provide it
+#' @param table optional table from project
 #' @keywords get
 #' @export
 #' @examples
@@ -170,7 +173,7 @@ OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
 #' @export
 #' @examples
 #' automatically join tables
-#' data <- OBM_set('set_table',c('dead_animals','dead_animals_history'))
+#' data <- OBM_set('set_join',c('dead_animals','dead_animals_history'))
 
 OBM_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
     if (scope=='' || condition == '') {
