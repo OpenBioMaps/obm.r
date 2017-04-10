@@ -4,12 +4,12 @@
 \alias{OBM_refresh_token}
 \title{Auth Function}
 \usage{
-OBM_refresh_token(token = OBM$token, url = OBM$token_url,
-  client_id = "web", verbose = F)
+OBM_refresh_token(token = OBM$token$refresh_token, url = OBM$token_url,
+  client_id = "R", verbose = F)
 }
 \arguments{
 \item{token}{url OBM_init() provide it
-client_id default is web
+client_id default is R
 verbose}
 }
 \description{

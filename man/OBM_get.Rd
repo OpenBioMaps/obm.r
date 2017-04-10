@@ -5,7 +5,7 @@
 \title{Get Function}
 \usage{
 OBM_get(scope = "", condition = "", token = OBM$token,
-  url = OBM$pds_url)
+  url = OBM$pds_url, table = OBM$project)
 }
 \arguments{
 \item{scope}{Which scope? e.g. get_data}

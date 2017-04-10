@@ -9,24 +9,35 @@
 #' OBM_init('dead_animals')
 #' OBM_init('butterflies','http://localhost/biomaps')
 
-OBM_init <- function (project,domain='openbiomaps.org',scope=c()) {
+OBM_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
         
     OBM <<- new.env()
-    # set some default value
-    if (!grepl('https?://',domain)) {
-        domain <- paste('http://',domain,sep='')
+
+    if (project=='') {
+        project <- readline(prompt="Enter project name: ")
     }
-    OBM$token_url <- paste(domain,'/oauth/token.php',sep='')
-    OBM$pds_url <- paste(domain,'/projects/',project,'/pds.php',sep='')
+    # set some default value
+    if (!grepl('https?://',url)) {
+        url <- paste('http://',url,sep='')
+    }
+    OBM$token_url <- paste(url,'/oauth/token.php',sep='')
+    OBM$pds_url <- paste(url,'/projects/',project,'/pds.php',sep='')
+    OBM$project <- project
     if(length(scope) > 0) {
         OBM$scope <- scope
     } else {
         # default scopes
         #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','set_rules')
     }
     # default client_id
     OBM$client_id <- 'R'
+
+    # return init variables
+    if (verbose==T) {
+        ls(OBM)
+    }
+    return(TRUE)
 }
 
 #' Auth Function
@@ -44,8 +55,8 @@ OBM_init <- function (project,domain='openbiomaps.org',scope=c()) {
 #' OBM_auth()
 #' token <- OBM_auth('banm@vocs.unideb.hu','12345')
 
-OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F) {
-    if ( exists('token', envir=OBM) & exists('time', envir=OBM) & (username=='' & password=='')) {
+OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=F) {
+    if ( exists('token', envir=OBM ,inherits=F) & exists('time', envir=OBM ,inherits=F) & (username=='' & password=='')) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -53,14 +64,25 @@ OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         if (length(e)  && e < timestamp) {
             if (verbose) {
                 print("Token expired, trying to refresh...")
+                return(FALSE)
             }
             # expired
             OBM_refresh_token(verbose=verbose)
+        } else {
+            if (verbose) {
+                print(paste("Token is valid until:",as.POSIXlt(OBM$time+OBM$token$expires_in,origin="1970-01-01")))
+            }
         }
     } else {
-        if (username=='' || password=='') {
+        if ( username=='' ) {
             username <- readline(prompt="Enter username: ")
-            password <- readline(prompt="Enter password: ")
+        } 
+        if ( password=='' ) {
+            if (paranoid==T) {
+                password <- get_password()
+            } else {
+                password <- readline(prompt="Enter password: ")
+            }
         }
         scope <- paste(scope, collapse = ' ')
         h <- httr::POST(url,body=list(grant_type='password',username=username,password=password,client_id=client_id,scope=scope))
@@ -73,15 +95,29 @@ OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             OBM$token <- j
             OBM$time <- unclass(z)
         } else {
-            if ( exists('token', envir=OBM) & !is.null(OBM$token) ) {
+            if ( exists('token', envir=OBM, inherits=F) & !is.null(OBM$token) ) {
                 rm(list=c('token'),envir=OBM)
             }
-            if ( exists('time', envir=OBM)  & !is.null(OBM$time)) {
+            if ( exists('time', envir=OBM, inherits=F)  & !is.null(OBM$time)) {
                 rm(list=c('time'),envir=OBM)
             }
             print("Authentication failed.")
+            return(FALSE)
         }
     }
+    return(TRUE)
+}
+
+#' unix like password function
+#' used in OBM_auth()
+#' 
+get_password <- function() {
+    cat("Password: ")
+    system("stty -echo")
+    a <- readline()
+    system("stty echo")
+    cat("\n")
+    return(a)
 }
 
 #' Get Function
@@ -97,11 +133,50 @@ OBM_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
 #' data <- OBM_get('get_data','39980:39988')
 #' data <- OBM_get('get_data','faj=Parus palustris')
 
-OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
+OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table=OBM$project) {
     if (scope=='' || condition == '') {
         return ("usage: OBM_get(scope,condition,...)")
     }
-    if ( exists('token', envir=OBM) & exists('time', envir=OBM) ) {
+    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+        # auto refresh token 
+        z <- Sys.time()
+        timestamp <- unclass(z)
+        e <- OBM$time + OBM$token$expires_in
+        if (length(e) && e < timestamp) {
+            # expired
+            OBM_refresh_token()
+        }
+    }
+    h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table),encode='form')
+    if (status_code(h) != 200) {
+        return(paste("http error:",status_code(h) ))
+    }
+    h.list <- httr::content(h, "parsed", "application/json")
+    if (typeof(h.list)=='list') {
+        do.call("rbind", h.list)
+    } else {
+        h.list
+    }
+}
+
+#' Set Function
+#'
+#' This function allows you to set rules for OBM_get.
+#' @param scope Which scope? e.g. set_join 
+#' @param condition A text condition based on column in your table
+#' @param token OBM_init() provide it
+#' @param url OBM_init() provide it
+#' @keywords set
+#' @export
+#' @examples
+#' automatically join tables
+#' data <- OBM_set('set_table',c('dead_animals','dead_animals_history'))
+
+OBM_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
+    if (scope=='' || condition == '') {
+        return ("usage: OBM_set(scope,condition,...)")
+    }
+    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -112,9 +187,17 @@ OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
         }
     }
     h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition),encode='form')
+    if (status_code(h) != 200) {
+        return(paste("http error:",status_code(h) ))
+    }
     h.list <- httr::content(h, "parsed", "application/json")
-    do.call("rbind", h.list)
+    if (typeof(h.list)=='list') {
+        do.call("rbind", h.list)
+    } else {
+        h.list
+    }
 }
+
 
 #' Auth Function
 #'
@@ -139,10 +222,10 @@ OBM_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
             print(j)
         }
     } else {
-        if ( exists('token', envir=OBM) & !is.null(OBM$token)) {
+        if ( exists('token', envir=OBM, inherits=F) & !is.null(OBM$token)) {
             rm(list=c('token'),envir=OBM)
         }
-        if ( exists('time', envir=OBM) & !is.null(OBM$time)) {
+        if ( exists('time', envir=OBM, inherits=F) & !is.null(OBM$time)) {
             rm(list=c('time'),envir=OBM)
         }
         print("Authentication disconnected.")

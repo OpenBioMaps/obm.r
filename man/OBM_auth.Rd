@@ -4,18 +4,18 @@
 \alias{OBM_auth}
 \title{Auth Function}
 \usage{
-OBM_auth(username = "", password = "",
-  scope = "get_form_data get_form_list get_profile get_data get_history",
-  client_id = "web", url = OBM$token_url, verbose = F)
+OBM_auth(username = "", password = "", scope = OBM$scope,
+  client_id = OBM$client_id, url = OBM$token_url, verbose = F,
+  paranoid = F)
 }
 \arguments{
 \item{username}{Your OBM username (email)}
 
 \item{password}{Your password}
 
-\item{scope}{OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history}
+\item{scope}{vector OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history}
 
-\item{client_id}{Default is web}
+\item{client_id}{Default is R}
 
 \item{url}{OAuth2 token url OBM_init() provide it}
 

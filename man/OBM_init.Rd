@@ -4,7 +4,8 @@
 \alias{OBM_init}
 \title{Init Function}
 \usage{
-OBM_init(project, domain = "openbiomaps.org")
+OBM_init(project = "", url = "openbiomaps.org", scope = c(),
+  verbose = F)
 }
 \arguments{
 \item{project}{Which project?}
