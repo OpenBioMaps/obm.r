@@ -151,8 +151,8 @@ OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
         }
     }
     h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table),encode='form')
-    if (status_code(h) != 200) {
-        return(paste("http error:",status_code(h) ))
+    if (httr::status_code(h) != 200) {
+        return(paste("http error:",httr::status_code(h) ))
     }
     h.list <- httr::content(h, "parsed", "application/json")
     if (typeof(h.list)=='list') {
