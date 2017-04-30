@@ -29,7 +29,7 @@ OBM_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     } else {
         # default scopes
         #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','set_rules')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','set_rules','get_report')
     }
     # default client_id
     OBM$client_id <- 'R'
