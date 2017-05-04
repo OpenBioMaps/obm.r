@@ -1,17 +1,18 @@
 # obm.r
 R package for connecting and retreive data from OpenBioMaps servers
 
-## install from github:
+## install from github
 
 library("devtools")
 
 install_github('OpenBioMaps/obm.r')
 
-## load library:
+## load library
 
 library(obm)
 
 ## usage examples
+
 ### init dead_animals on openbiomaps.org
 OBM_init('dead_animals')
 
