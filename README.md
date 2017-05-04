@@ -25,11 +25,11 @@ token <- OBM_auth('foobar@gmail.com','pamparampam')
 token <- OBM_auth()
 
 ### refresh token
-### usually auto refreshed
+#### usually auto refreshed
 token <- OBM_refresh_token(token)
 
 ### get avilable forms 
-### it is only a testing code for the mobile app developers...
+#### it is only a testing code for the mobile app developers...
 data <- OBM_get('get_form_list',0)
 
 data <- OBM_get('get_form_data',73)
