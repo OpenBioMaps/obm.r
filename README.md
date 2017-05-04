@@ -37,5 +37,10 @@ data <- OBM_get('get_form_data',73)
 ### query a range of data from the main table 
 data <- OBM_get('get_data','39980:39988')
 
-### query data
+### query data based on column filter
 data <- OBM_get('get_data','faj=Parus palustris')
+
+### perform stored query
+## the `last` label points an SQL query which stored on the server. These queries connected with the users. 
+## The users can create and save custom queries with custom labels.
+OBM_get('get_report','last')
