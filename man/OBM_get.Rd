@@ -15,6 +15,8 @@ OBM_get(scope = "", condition = "", token = OBM$token,
 \item{token}{OBM_init() provide it}
 
 \item{url}{OBM_init() provide it}
+
+\item{table}{optional table from project}
 }
 \description{
 This function allows you to get data from an OpenBioMaps server.

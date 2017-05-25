@@ -21,6 +21,6 @@ This function allows you to set rules for OBM_get.
 }
 \examples{
 automatically join tables
-data <- OBM_set('set_table',c('dead_animals','dead_animals_history'))
+data <- OBM_set('set_join',c('dead_animals','dead_animals_history'))
 }
 \keyword{set}

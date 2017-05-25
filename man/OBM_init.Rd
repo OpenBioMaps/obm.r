@@ -10,7 +10,9 @@ OBM_init(project = "", url = "openbiomaps.org", scope = c(),
 \arguments{
 \item{project}{Which project?}
 
-\item{domain}{project server domain DEFAULT is openbiomaps.org}
+\item{url}{project server domain DEFAULT is openbiomaps.org}
+
+\item{verbose}{print some messages}
 }
 \description{
 This function allows you to initiate an OBM connection.

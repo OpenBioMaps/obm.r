@@ -20,12 +20,14 @@ OBM_auth(username = "", password = "", scope = OBM$scope,
 \item{url}{OAuth2 token url OBM_init() provide it}
 
 \item{verbose}{print some messages}
+
+\item{paranoid}{hide password while typing (on Linux)}
 }
 \description{
 This function allows you to connect to and OBM server.
 }
 \examples{
 OBM_auth()
-token <- OBM_auth('banm@vocs.unideb.hu','12345')
+token <- OBM_auth('foo@google.com','12345')
 }
 \keyword{auth}

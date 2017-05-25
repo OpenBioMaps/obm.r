@@ -17,6 +17,10 @@ OBM_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     if (project=='') {
         project <- readline(prompt="Enter project name: ")
     }
+
+    if (url=='openbiomaps.org') {
+        url <- readline(prompt="Enter project url (openbiomaps.org): ")
+    }
     # set some default value
     if (!grepl('https?://',url)) {
         url <- paste('http://',url,sep='')
@@ -29,7 +33,7 @@ OBM_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     } else {
         # default scopes
         #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','set_rules','get_report')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','set_rules','get_report','put_data')
     }
     # default client_id
     OBM$client_id <- 'R'
@@ -162,6 +166,57 @@ OBM_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
     }
 }
 
+#' Put Function
+#'
+#' @param scope currently put_data supported
+#' @param condition database column names vector, if missing default is the full list from the form
+#' @param csv_file a csv file with header row
+#' @param form_id the form's id
+#' @param token OBM$token
+#' @param url OBM$url
+#' @param table OBM$table
+#' @examples
+#' using own list of columns
+#'   OBM_get('get_form_list',0)
+#'   form <- OBM_get('get_form_data',57)
+#'   columns <- unlist(form[,'column'])
+#'   t <- OBM_put('put_data',columns[1:3],form_id=57,csv_file='./teszt2.csv')
+#'
+#' using default columns list:
+#'   t <- OBM_put(scope='put_data',form_id=57,csv_file='./teszt2.csv')
+#' 
+OBM_put <- function (scope='',condition='',csv_file='',form_id='',token=OBM$token,url=OBM$pds_url,table=OBM$project) {
+    if ( scope == '' ) {
+        return ("usage: OBM_get(scope...)")
+    }
+    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+        # auto refresh token 
+        z <- Sys.time()
+        timestamp <- unclass(z)
+        e <- OBM$time + OBM$token$expires_in
+        if (length(e) && e < timestamp) {
+            # expired
+            OBM_refresh_token()
+        }
+    }
+    #t<-POST(url,body=list(access_token=OBM$token$access_token,scope='put_data',put_api_form=57,value='"a":{1,2},"b":{3,4}',table=OBM$project,file=upload_file('./teszt2.csv','text/csv')),encode="multipart")
+    #t<-POST(url,body=list(access_token=OBM$token$access_token,scope='put_data',put_api_form=57,value='["faj","hely","szamossag"]',table=OBM$project,file=upload_file('./teszt2.csv','text/csv')),encode="multipart") 
+    
+    #h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table, filedata=upload_file("teszt2.csv", "text/csv")),encode="multipart")
+    
+    if (is.vector(condition)) {
+        condition <- jsonlite::toJSON(condition)
+    }
+
+    h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,put_api_form=form_id,value=condition,table=table, file=upload_file(csv_file, "text/csv")),encode="multipart")
+    if (httr::status_code(h) != 200) {
+        return(paste("http error:",httr::status_code(h) ))
+    }
+    h.list <- httr::content(h, "parsed", "application/json")
+    h.list
+}
+
+
 #' Set Function
 #'
 #' This function allows you to set rules for OBM_get.
@@ -190,8 +245,8 @@ OBM_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
         }
     }
     h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition),encode='form')
-    if (status_code(h) != 200) {
-        return(paste("http error:",status_code(h) ))
+    if (httr::status_code(h) != 200) {
+        return(paste("http error:",httr::status_code(h) ))
     }
     h.list <- httr::content(h, "parsed", "application/json")
     if (typeof(h.list)=='list') {
