@@ -17,6 +17,7 @@ OBM_set(scope = "", condition = "", token = OBM$token,
 \item{url}{OBM_init() provide it}
 }
 \description{
+Experimental function!
 This function allows you to set rules for OBM_get.
 }
 \examples{

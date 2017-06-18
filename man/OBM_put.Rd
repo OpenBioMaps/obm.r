@@ -4,23 +4,26 @@
 \alias{OBM_put}
 \title{Put Function}
 \usage{
-OBM_put(scope = "", condition = "", csv_file = "", form_id = "",
+OBM_put(scope = NULL, form_header_names = NULL, data_file = NULL,
+  media_file = NULL, form_id = "", api_form_data = "",
   token = OBM$token, url = OBM$pds_url, table = OBM$project)
 }
 \arguments{
 \item{scope}{currently put_data supported}
 
-\item{condition}{database column names vector, if missing default is the full list from the form}
-
-\item{csv_file}{a csv file with header row}
+\item{form_header_names}{database column names vector, if missing default is the full list from the form}
 
 \item{form_id}{the form's id}
+
+\item{api_form_data}{JSON array of data}
 
 \item{token}{OBM$token}
 
 \item{url}{OBM$url}
 
 \item{table}{OBM$table}
+
+\item{csv_file}{a csv file with header row}
 }
 \description{
 Put Function
@@ -30,9 +33,19 @@ using own list of columns
   OBM_get('get_form_list',0)
   form <- OBM_get('get_form_data',57)
   columns <- unlist(form[,'column'])
-  t <- OBM_put('put_data',columns[1:3],form_id=57,csv_file='./teszt2.csv')
+  t <- OBM_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
 
 using default columns list:
-  t <- OBM_put(scope='put_data',form_id=57,csv_file='./teszt2.csv')
+  t <- OBM_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
+
+JSON upload
+  data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10'),c("Tringa flavipes",'egyed',"BYWO",'2')),ncol=4,nrow=2,byrow=T)
+  #colnames(data)<-c("species","nume","place","no")
+  t <- OBM_put(scope='put_data',form_id=57,api_form_data=as.data.frame(data),form_header_names=c('faj','szamossag','hely','egyedszam'))
+
+with attached file
+  data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
+  #colnames(data)<-c("species","nume","place","no",'Attach')
+  t <- OBM_put(scope='put_data',form_id=57,api_form_data=as.data.frame(data),form_header_names=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 
 }

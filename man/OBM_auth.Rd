@@ -28,6 +28,6 @@ This function allows you to connect to and OBM server.
 }
 \examples{
 OBM_auth()
-token <- OBM_auth('foo@google.com','12345')
+token <- OBM_auth('foo@google.com','abc123')
 }
 \keyword{auth}

@@ -24,5 +24,11 @@ This function allows you to get data from an OpenBioMaps server.
 \examples{
 data <- OBM_get('get_data','39980:39988')
 data <- OBM_get('get_data','faj=Parus palustris')
+get list of available forms
+data <- OBM_get('get_form_list',0)
+get data of a form
+data <- OBM_get('get_form_data',73)
+perform strored query 'last' is a custom label
+OBM_get('get_report','last')
 }
 \keyword{get}
