@@ -23,7 +23,7 @@ obm_init('dead_animals','localhost/biomaps')
 token <- obm_auth('foobar@gmail.com','pamparampam')
 
 ### interactive authentication
-token <- OBM_auth()
+token <- obm_auth()
 
 ### refresh token
 #### usually auto refreshed
