@@ -3,11 +3,11 @@
 \name{get_password}
 \alias{get_password}
 \title{unix like password function
-used in OBM_auth()}
+used in obm_auth()}
 \usage{
 get_password()
 }
 \description{
 unix like password function
-used in OBM_auth()
+used in obm_auth()
 }
