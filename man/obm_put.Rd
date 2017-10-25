@@ -26,7 +26,7 @@ obm_put(scope = NULL, form_header_names = NULL, data_file = NULL,
 \item{csv_file}{a csv file with header row}
 }
 \description{
-Put Function
+This function allows put data into an OpenBioMaps server.
 }
 \examples{
 using own list of columns
@@ -49,3 +49,4 @@ with attached file
   t <- obm_put(scope='put_data',form_id=57,api_form_data=as.data.frame(data),form_header_names=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 
 }
+\keyword{put}

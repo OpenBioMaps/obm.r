@@ -12,6 +12,8 @@
 
 obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
         
+    return_val <- TRUE
+
     OBM <<- new.env()
 
     if (project=='') {
@@ -20,6 +22,9 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
 
     if (url=='openbiomaps.org') {
         url <- readline(prompt="Enter project url (openbiomaps.org): ")
+        if (url=='') {
+            url <- 'openbiomaps.org'
+        }
     }
     # set some default value
     if (!grepl('https?://',url)) {
@@ -27,6 +32,13 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     }
     OBM$token_url <- paste(url,'/oauth/token.php',sep='')
     OBM$pds_url <- paste(url,'/projects/',project,'/pds.php',sep='')
+    s <- httr::GET(OBM$token_url)
+    if (httr::status_code(s) == 404 ) {
+        print("The url is not valid!")
+        print(OBM$token_url)
+        verbose <- TRUE
+        return_val <- FALSE
+    }
     OBM$project <- project
     if(length(scope) > 0) {
         OBM$scope <- scope
@@ -42,7 +54,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     if (verbose==T) {
         ls(OBM)
     }
-    return(TRUE)
+    return(return_val)
 }
 
 #' Auth Function
@@ -92,6 +104,10 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         }
         scope <- paste(scope, collapse = ' ')
         h <- httr::POST(url,body=list(grant_type='password',username=username,password=password,client_id=client_id,scope=scope))
+        if (httr::status_code(h)==401) {
+            print('authentication failed!')
+            return(FALSE)
+        }
         z <- Sys.time()
         j <- httr::content(h, "parsed", "application/json")
         if (verbose) {
@@ -174,6 +190,7 @@ obm_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
 
 #' Put Function
 #'
+#' This function allows put data into an OpenBioMaps server.
 #' @param scope currently put_data supported
 #' @param form_header_names database column names vector, if missing default is the full list from the form
 #' @param csv_file a csv file with header row
@@ -182,6 +199,8 @@ obm_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
 #' @param token OBM$token
 #' @param url OBM$url
 #' @param table OBM$table
+#' @keywords put
+#' @export
 #' @examples
 #' using own list of columns
 #'   obm_get('get_form_list',0)
@@ -261,17 +280,18 @@ obm_put <- function (scope=NULL,form_header_names=NULL,data_file=NULL,media_file
     } else {
         h <- httr::POST(url,
                     body=list(access_token=token$access_token, scope=scope, table=table, put_api_form=form_id, value=form_header_names, api_form_data=api_form_data),
-                    encode="multipart")
+                    encode="form")
     }
 
     if (httr::status_code(h) != 200) {
-        return(paste("http error:",httr::status_code(h) ))
+        return(paste("http error:",httr::status_code(h),h ))
     }
 
     h.list <- httr::content(h, "parsed", "application/json")
     h.list
 }
 
+#obm_put(scope='put_data',form_id=1,form_header_names=columns,api_form_data=as.data.frame(data))
 
 #' Set Function
 #'
