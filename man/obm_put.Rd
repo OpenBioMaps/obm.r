@@ -4,24 +4,26 @@
 \alias{obm_put}
 \title{Put Function}
 \usage{
-obm_put(scope = NULL, form_header_names = NULL, data_file = NULL,
-  media_file = NULL, form_id = "", api_form_data = "",
+obm_put(scope = NULL, form_header = NULL, data_file = NULL,
+  media_file = NULL, form_id = "", form_data = "", soft_error = "",
   token = OBM$token, url = OBM$pds_url, table = OBM$project)
 }
 \arguments{
 \item{scope}{currently put_data supported}
 
-\item{form_header_names}{database column names vector, if missing default is the full list from the form}
-
 \item{form_id}{the form's id}
 
-\item{api_form_data}{JSON array of data}
+\item{form_data}{JSON array of data}
+
+\item{soft_error}{JSON array of 'Yes' strings (or translations of it) to skip soft error messages}
 
 \item{token}{OBM$token}
 
 \item{url}{OBM$url}
 
 \item{table}{OBM$table}
+
+\item{header_names}{database column names vector, if missing default is the full list from the form}
 
 \item{csv_file}{a csv file with header row}
 }
@@ -41,12 +43,12 @@ using default columns list:
 JSON upload
   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10'),c("Tringa flavipes",'egyed',"BYWO",'2')),ncol=4,nrow=2,byrow=T)
   #colnames(data)<-c("species","nume","place","no")
-  t <- obm_put(scope='put_data',form_id=57,api_form_data=as.data.frame(data),form_header_names=c('faj','szamossag','hely','egyedszam'))
+  t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),header_names=c('faj','szamossag','hely','egyedszam'))
 
 with attached file
   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
   #colnames(data)<-c("species","nume","place","no",'Attach')
-  t <- obm_put(scope='put_data',form_id=57,api_form_data=as.data.frame(data),form_header_names=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
+  t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),header_names=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 
 }
 \keyword{put}
