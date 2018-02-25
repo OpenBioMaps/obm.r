@@ -4,7 +4,7 @@
 \alias{obm_get}
 \title{Get Function}
 \usage{
-obm_get(scope = "", condition = "", token = OBM$token,
+obm_get(scope = "", condition = NULL, token = OBM$token,
   url = OBM$pds_url, table = OBM$project)
 }
 \arguments{
@@ -22,13 +22,22 @@ obm_get(scope = "", condition = "", token = OBM$token,
 This function allows you to get data from an OpenBioMaps server.
 }
 \examples{
+get data rows from the main table from 39980 to 39988
 data <- obm_get('get_data','39980:39988')
-data <- obm_get('get_data','faj=Parus palustris')
+get rows from the main table where column 'species' is 'Parus palustris'
+data <- obm_get('get_data','species=Parus palustris')
+get all data from the default/main table
+data <- obm_get('get_data','*')
+get data from a non-default table
+obm_get('get_data','*',table='additional_data')
+
 get list of available forms
-data <- obm_get('get_form_list',0)
+data <- obm_get('get_form_list')
 get data of a form
 data <- obm_get('get_form_data',73)
 perform strored query 'last' is a custom label
 obm_get('get_report','last')
+get list of available tables in the project
+obm_get('get_tables')
 }
 \keyword{get}

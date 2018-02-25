@@ -18,7 +18,9 @@ obm_init(project = "", url = "openbiomaps.org", scope = c(),
 This function allows you to initiate an OBM connection.
 }
 \examples{
+connect to a database on the default server (openbiomaps.org)
 obm_init('dead_animals')
+connect on the local server intance to the butterfly database project
 obm_init('butterflies','http://localhost/biomaps')
 }
 \keyword{init}

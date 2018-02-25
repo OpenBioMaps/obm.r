@@ -7,7 +7,9 @@
 #' @keywords init
 #' @export
 #' @examples
+#' connect to a database on the default server (openbiomaps.org)
 #' obm_init('dead_animals')
+#' connect on the local server intance to the butterfly database project
 #' obm_init('butterflies','http://localhost/biomaps')
 
 obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
@@ -45,7 +47,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     } else {
         # default scopes
         #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables')
     }
     # default client_id
     OBM$client_id <- 'R'
@@ -153,18 +155,27 @@ get_password <- function() {
 #' @keywords get
 #' @export
 #' @examples
+#' get data rows from the main table from 39980 to 39988
 #' data <- obm_get('get_data','39980:39988')
-#' data <- obm_get('get_data','faj=Parus palustris')
+#' get rows from the main table where column 'species' is 'Parus palustris'
+#' data <- obm_get('get_data','species=Parus palustris')
+#' get all data from the default/main table
+#' data <- obm_get('get_data','*')
+#' get data from a non-default table
+#' obm_get('get_data','*',table='additional_data')
+#'
 #' get list of available forms
-#' data <- obm_get('get_form_list',0)
+#' data <- obm_get('get_form_list')
 #' get data of a form
 #' data <- obm_get('get_form_data',73)
 #' perform strored query 'last' is a custom label
 #' obm_get('get_report','last')
+#' get list of available tables in the project
+#' obm_get('get_tables')
 
-obm_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table=OBM$project) {
-    if (scope=='' || condition == '') {
-        return ("usage: obm_get(scope,condition,...)")
+obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,table=OBM$project) {
+    if (scope=='') {
+        return ("usage: obm_get(scope,...)")
     }
     if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
         # auto refresh token 
@@ -176,6 +187,9 @@ obm_get <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url,table
             obm_refresh_token()
         }
     }
+    #if (condition=='') {
+    #    condition <- NULL
+    #}
     h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table),encode='form')
     if (httr::status_code(h) != 200) {
         return(paste("http error:",httr::status_code(h) ))
