@@ -2,3 +2,5 @@ UMS_REPOSITORY/
 *.swp
 *.swo
 *.swn
+.RData
+.Rhistory

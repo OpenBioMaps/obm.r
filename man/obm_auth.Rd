@@ -6,7 +6,7 @@
 \usage{
 obm_auth(username = "", password = "", scope = OBM$scope,
   client_id = OBM$client_id, url = OBM$token_url, verbose = F,
-  paranoid = F)
+  paranoid = T)
 }
 \arguments{
 \item{username}{Your OBM username (email)}

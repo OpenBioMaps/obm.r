@@ -1,6 +1,6 @@
 #' Init Function
 #'
-#' This function allows you to initiate an OBM connection.
+#' This function is initiating an OBM connection.
 #' @param project Which project?
 #' @param url project server domain DEFAULT is openbiomaps.org
 #' @param verbose print some messages
@@ -75,7 +75,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
 #' obm_auth()
 #' token <- obm_auth('foo@google.com','abc123')
 
-obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=F) {
+obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=T) {
     if ( exists('token', envir=OBM ,inherits=F) & exists('time', envir=OBM ,inherits=F) & (username=='' & password=='')) {
         # auto refresh token 
         z <- Sys.time()
@@ -236,16 +236,16 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
 #'   t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 #'
 #' JSON upload
-#'   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10'),c("Tringa flavipes",'egyed',"BYWO",'2')),ncol=4,nrow=2,byrow=T)
-#'   #colnames(data)<-c("species","nume","place","no")
-#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),header_names=c('faj','szamossag','hely','egyedszam'))
+#'   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),ncol=5,nrow=2,byrow=T)
+#'   #colnames(data)<-c("species","nume","place","no","geom")
+#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam'))
 #' 
 #' with attached file
 #'   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
 #'   #colnames(data)<-c("species","nume","place","no",'Attach')
-#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),header_names=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
+#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 #'
-obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',soft_error='',token=OBM$token,url=OBM$pds_url,table=OBM$project) {
+obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
     if ( is.null(scope) ) {
         return ("usage: obm_get(scope...)")
     }
@@ -261,7 +261,6 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
     }
 
     # create json from data.frame - api expect JSON array as api_form_data
-    form_data <- jsonlite::toJSON(form_data)
     soft_error <- jsonlite::toJSON(soft_error)
 
     data_attachment <- 0
@@ -273,38 +272,83 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
     
     if (!is.null (media_file)) {
         media_attachment <- 1
-        if ( !length(which(form_header_names=='obm_files_id')) ) {
-            print ("obm_files_id column should be exists and filled with the file names!")
-        }
     }
-
-    if (!is.null(form_header_names) && is.vector(header_names)) {
-        header_names <- jsonlite::toJSON(header_names)
-    }
-
 
     if (data_attachment==1) {
+
+        form_data <- jsonlite::toJSON(form_data)
+        if (!is.null(form_header) && is.vector(form_header)) {
+            form_header <- jsonlite::toJSON(form_header)
+        }
+
         # only one attached file
-        h <- httr::POST(url,
-                    body=list(access_token=token$access_token,scope=scope,form_id=form_id,header=header_names,data=form_data,soft_error=soft_error,table=table, 
-                              file=upload_file(data_file)),
+        h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token,scope=scope,form_id=form_id,header=form_header,data=form_data,soft_error=soft_error,table=data_table, 
+                              file=httr::upload_file(data_file)),
                     encode="multipart")
 
     } else if (media_attachment==1) {
 
+        files <- list()
         for ( i in media_file ) {
-            h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope=scope, table=table, attached_files=upload_file(i)),
+            h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope=scope, table=data_table, attached_files=httr::upload_file(i)),
                     encode="multipart")
+            j <- httr::content(h, "parsed", "application/json")
+            if (j$status == "success") {
+                # uploaded file reference name
+                files[[i]] <- unlist(j$data)
+            }
         }
-        
-        h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope=scope, table=table, form_id=form_id, header=header_names, data=form_data),
-                    encode="multipart")
+        if (!is.null(form_header) && is.vector(form_header)) {
+            if ( !length(which(form_header=='obm_files_id')) ) {
+                print ("obm_files_id column should be exists in header names")
+            } else {
+                obm_files_id_idx <- which(form_header=='obm_files_id')
+            }
+        } else {
+            if ( !length(which(colnames(form_data)=='obm_files_id')) ) {
+                print ("obm_files_id column should be exists in header names")
+            } else {
+                obm_files_id_idx <- which(colnames(form_data)=='obm_files_id')
+            }
+        }
+
+        # file names to file name index in each obm_files_id cells
+        for ( j in 1:nrow(form_data)) {
+            # file names in obm_files_id cell
+            s <- unlist(strsplit(form_data[,obm_files_id_idx][j],','))
+            
+            n <- 1
+            for ( i in files ) {
+                name <- names(files)[n]
+                w <- which(s==name)
+                if (length(w)) {
+                    s[w] <- i
+                }
+                n <- n+1
+            }
+            form_data[,obm_files_id_idx][j] <- paste(s,collapse=',')
+        }
+        form_data <- jsonlite::toJSON(form_data)
+
+        if (!is.null(form_header) && is.vector(form_header)) {
+            form_header <- jsonlite::toJSON(form_header)
+        }
+
+        h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope=scope, table=data_table, form_id=form_id, header=form_header, data=form_data),
+                    encode="form")
     
     } else {
-        h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope=scope, table=table, form_id=form_id, header=header_names, data=form_data),
+
+        form_data <- jsonlite::toJSON(form_data)
+        if (!is.null(form_header) && is.vector(form_header)) {
+            form_header <- jsonlite::toJSON(form_header)
+        }
+
+        h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope=scope, table=data_table, form_id=form_id, header=form_header, data=form_data),
                     encode="form")
     }
 

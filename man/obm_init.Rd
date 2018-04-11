@@ -15,7 +15,7 @@ obm_init(project = "", url = "openbiomaps.org", scope = c(),
 \item{verbose}{print some messages}
 }
 \description{
-This function allows you to initiate an OBM connection.
+This function is initiating an OBM connection.
 }
 \examples{
 connect to a database on the default server (openbiomaps.org)
