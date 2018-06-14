@@ -2,6 +2,7 @@
 
 S3method(as.data.frame,obm_class)
 S3method(summary,obm_class)
+export(as.obm_class)
 export(obm_auth)
 export(obm_get)
 export(obm_init)

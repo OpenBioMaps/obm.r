@@ -204,18 +204,54 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
             #h.df <- do.call("rbind", h.list$data)
             #class(h.df) <- "obm_class"
             h.cl <- structure(list(data = h.json$data), class = "obm_class")
-            print(h.cl)
+            return(h.cl)
         } else {
             if (exists('message',h.list)) {
-                print(h.list$message)
+                return(h.list$message)
             }
             else if (exists('data',h.list)) {
-                print(h.list$data)
+                return(h.list$data)
             }
         }
     #} else {
     #    h.list
     #}
+}
+
+# offline edit 
+# Read form data
+# form_data <- obm_get('get_form_data',n)
+# Create obm_class data_frame object
+# obm_data <- as.obm_class(data.frame)
+# obm_data$form_data <- form_data
+# obm_data <- obm_edit(obm_data)
+#       x <- edit(obm_data$data)
+#       x <- validate(x)
+#               ...
+# save(obm_data,file=obm_data_form_id.df)
+# load(file=obm_data_form_id.df)
+
+#' as. class Function
+#'
+#' This class function creates an obm_class
+#' @param data.frame
+#' @keywords as obm_class
+#' @export
+#' @examples
+#' as.obm_class(DF)
+as.obm_class <- function(x) {
+    return(structure(list(data = x), class = "obm_class"))
+}
+
+#' obm_form offline form fill function
+#'
+#' Offline data editor
+#' @param obm_class
+obm_fill_form <- function(x) {
+    d.f <- edit(x$data)
+    # results <- validate(df,x$form_data)
+    # print(results)
+    return(d.f)
 }
 
 #' summary class Function
