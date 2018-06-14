@@ -194,10 +194,17 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
     if (httr::status_code(h) != 200) {
         return(paste("http error:",httr::status_code(h) ))
     }
-    h.list <- httr::content(h, "parsed", "application/json")
-    if (typeof(h.list)=='list') {
-        if (h.list$status=='success') {
-            do.call("rbind", h.list$data)
+    # however it sent as JSON, it is better to parse as text 
+    # h.list <- httr::content(h, "parsed", "application/json")
+    h.content <- httr::content(h,'text')
+    h.json <- jsonlite::fromJSON( h.content )
+
+    #if (typeof(h.list)=='list') {
+        if (h.json$status=='success') {
+            #h.df <- do.call("rbind", h.list$data)
+            #class(h.df) <- "obm_class"
+            h.cl <- structure(list(data = h.json$data), class = "obm_class")
+            print(h.cl)
         } else {
             if (exists('message',h.list)) {
                 print(h.list$message)
@@ -206,9 +213,40 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
                 print(h.list$data)
             }
         }
-    } else {
-        h.list
-    }
+    #} else {
+    #    h.list
+    #}
+}
+
+#' summary class Function
+#'
+#' This class function creates a standard summary
+#' @param obm_class S3 data object
+#' @keywords summary
+#' @export
+#' @examples
+#' summary(obm.data)
+summary.obm_class <- function(x) {
+    cat(paste('','Columns','\t','Rows',sep="\t"))
+    cat("\n")
+    cat(paste('',ncol(x$data),'\t',nrow(x$data),sep="\t"))
+    cat("\n")
+    cat("\n")
+    cat(paste('','Column names',sep="\t"))
+    cat("\n")
+    print(sort(colnames(x$data)))
+}
+
+#' as.data.frame class Function
+#'
+#' This class function extract data frame from obm_class S3 object
+#' @param obm_class S3 class object
+#' @keywords as.data.frame
+#' @export
+#' @examples
+#' as.data.frame(obm.data)
+as.data.frame.obm_class <- function(x) {
+    return(x$data)
 }
 
 #' Put Function
@@ -236,12 +274,12 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
 #'   t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 #'
 #' JSON upload
-#'   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),ncol=5,nrow=2,byrow=T)
+#'   data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),ncol=5,nrow=2,byrow=T)
 #'   #colnames(data)<-c("species","nume","place","no","geom")
 #'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam'))
 #' 
 #' with attached file
-#'   data  <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
+#'   data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
 #'   #colnames(data)<-c("species","nume","place","no",'Attach')
 #'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 #'
