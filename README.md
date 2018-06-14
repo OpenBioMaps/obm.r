@@ -13,33 +13,38 @@ library(obm)
 
 ## usage examples
 
-### init dead_animals on openbiomaps.org
+### initialize connection to dead_animals database on openbiomaps.org
 obm_init('dead_animals')
 
-### init dead_animals on local gekko
+### initialize connection to dead_animals database on localhost
 obm_init('dead_animals','localhost/biomaps')
 
-### authenticating - request token
-token <- obm_auth('foobar@gmail.com','pamparampam')
+### initialize connection without parameters
+obm_init()
 
-### interactive authentication
-token <- obm_auth()
-
-### refresh token
-#### usually auto refreshed
-token <- obm_refresh_token(token)
+### authenticating without parameters
+obm_auth()
 
 ### get avilable forms 
-#### it is only a testing code for the mobile app developers...
-data <- obm_get('get_form_list',0)
+form_list <- obm_get('get_form_list')
 
-data <- obm_get('get_form_data',73)
+### get form data 
+form_data <- obm_get('get_form_data',73)
 
-### query a range of data from the main table 
+### query a range of data from the main table. Returns obm_class
 data <- obm_get('get_data','39980:39988')
 
-### query data based on column filter
+### query all data from the main table. Returns obm_class
+data <- obm_get('get_data','*')
+
+### query data based on column filter. Returns obm_class
 data <- obm_get('get_data','faj=Parus palustris')
+
+### offline form fill - THIS FUNCTION IS NOT READY
+obm_form_fill(form_data)
+
+### upload data
+obm_put(...)
 
 ### perform stored query
 #### the `last` label points an SQL query which stored on the server. These queries connected with the users. 
