@@ -234,7 +234,7 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
 #' as. class Function
 #'
 #' This class function creates an obm_class
-#' @param data.frame
+#' @param x data.frame
 #' @keywords as obm_class
 #' @export
 #' @examples
@@ -246,7 +246,11 @@ as.obm_class <- function(x) {
 #' obm_form offline form fill function
 #'
 #' Offline data editor
-#' @param obm_class
+#' @param x obm_class
+#' @keywords fill form
+#' @export
+#' @examples
+#' data.frame <- obm_fill_form(obm_class)
 obm_fill_form <- function(x) {
     d.f <- edit(x$data)
     # results <- validate(df,x$form_data)

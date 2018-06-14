@@ -6,6 +6,9 @@
 \usage{
 as.obm_class(x)
 }
+\arguments{
+\item{x}{data.frame}
+}
 \description{
 This class function creates an obm_class
 }

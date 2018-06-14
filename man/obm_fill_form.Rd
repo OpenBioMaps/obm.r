@@ -6,6 +6,14 @@
 \usage{
 obm_fill_form(x)
 }
+\arguments{
+\item{x}{obm_class}
+}
 \description{
 Offline data editor
 }
+\examples{
+data.frame <- obm_fill_form(obm_class)
+}
+\keyword{fill}
+\keyword{form}
