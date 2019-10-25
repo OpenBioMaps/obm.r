@@ -18,10 +18,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
 
     OBM <<- new.env()
 
-    if (project=='') {
-        project <- readline(prompt="Enter project name: ")
-    }
-
+    # get server url
     if (url=='openbiomaps.org') {
         url <- readline(prompt="Enter project url (openbiomaps.org): ")
         if (url=='') {
@@ -32,8 +29,38 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     if (!grepl('https?://',url)) {
         url <- paste('http://',url,sep='')
     }
-    OBM$token_url <- paste(url,'/oauth/token.php',sep='')
+    OBM$url <- url
+    OBM$server <- sub("https?://", "", url)
+    pds_url <- paste(url,'/pds.php',sep='')
+
+    h <- httr::POST(pds_url,body=list(scope='get_project_list',value='all'),encode='form')
+    if (httr::status_code(h) != 200) {
+        return(paste("http error:",httr::status_code(h) ))
+    }
+    h.content <- httr::content(h,'text')
+    h.json <- jsonlite::fromJSON( h.content )
+
+    if (h.json$status=='success') {
+        h.cl <- structure(list(data = h.json$data), class = "obm_class")
+        for (i in 1:length(h.cl$data)) {
+            print(h.cl$data$project_table[i])
+        }
+    } else {
+        if (exists('message',h.json)) {
+            print(h.json$message)
+        }
+        else if (exists('data',h.json)) {
+            print(h.json$data)
+        }
+    }
+
+    # get project
+    if (project=='') {
+        project <- readline(prompt="Enter project name: ")
+    }
+
     OBM$pds_url <- paste(url,'/projects/',project,'/pds.php',sep='')
+    OBM$token_url <- paste(url,'/oauth/token.php',sep='')
     s <- httr::GET(OBM$token_url)
     if (httr::status_code(s) == 404 ) {
         print("The url is not valid!")
@@ -47,7 +74,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     } else {
         # default scopes
         #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables')
+        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user')
     }
     # default client_id
     OBM$client_id <- 'R'
@@ -204,13 +231,13 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
             #h.df <- do.call("rbind", h.list$data)
             #class(h.df) <- "obm_class"
             h.cl <- structure(list(data = h.json$data), class = "obm_class")
-            return(h.cl)
+            return(h.cl$data)
         } else {
-            if (exists('message',h.list)) {
-                return(h.list$message)
+            if (exists('message',h.json)) {
+                return(h.json$message)
             }
-            else if (exists('data',h.list)) {
-                return(h.list$data)
+            else if (exists('data',h.json)) {
+                return(h.json$data)
             }
         }
     #} else {
@@ -517,3 +544,78 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
     }
 }
 
+#' SQL Interface
+#'
+#' It is a simple SQL Query interface function
+#' @param sqlcmd
+#' username most probably automatically set by create_pg_user module
+#' password most probably automatically set by create_pg_user module
+#' paranoid password promt type
+#' postgres server port, default is 5432
+#' database remote database, default is gisdata
+#' @keywords postgres
+#' @export
+#' @examples
+#' obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days FROM nestboxes WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
+
+obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,database='gisdata') {
+
+
+    if (exists('sqluser',OBM)) {
+        username <- OBM$sqluser
+    }
+    if (exists('sqlpasswd',OBM)) {
+        password <- OBM$sqlpasswd
+    }
+
+    if (username=='' & password=='') {
+        h <- httr::POST(OBM$pds_url,body=list(access_token=OBM$token$access_token,scope='pg_user',value='1',table=OBM$project),encode='form')
+        if (httr::status_code(h) != 200) {
+            return(paste("http error:",httr::status_code(h) ))
+        }
+
+        h.content <- httr::content(h,'text')
+        h.json <- jsonlite::fromJSON( h.content )
+
+        if (h.json$status=='success') {
+            h.cl <- structure(list(data = h.json$data), class = "obm_class")
+            if (exists('username',h.cl$data)) {
+                username <- h.cl$data$username
+            } else if (exists('usern',h.cl$data)) {
+                username <- h.cl$data$usern
+                password <- h.cl$data$passw    
+            }
+            
+        } else {
+            if (exists('message',h.json)) {
+                return(h.json$message)
+            }
+            else if (exists('data',h.json)) {
+                return(h.json$data)
+            }
+        }
+    }
+
+    if ( username=='' ) {
+        username <- readline(prompt="Enter username: ")
+    } 
+    if ( password=='' ) {
+        if (paranoid==T) {
+            password <- get_password()
+        } else {
+            password <- readline(prompt="Enter password: ")
+        }
+    }
+    OBM$sqluser <- username 
+    OBM$sqlpasswd <- password
+
+    drv <- RPostgreSQL:::PostgreSQL()
+    #drv <- DBI::dbDriver("PostgreSQL")
+    con <- DBI::dbConnect(drv, dbname = database,
+                     host = OBM$server,port = port,
+                     user = username, password = password)
+    df_postgres_result <- RPostgreSQL::dbGetQuery(con,sqlcmd)
+    RPostgreSQL::dbDisconnect(con)
+    RPostgreSQL::dbUnloadDriver(drv)
+    return(df_postgres_result)
+}
