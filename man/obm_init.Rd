@@ -4,13 +4,13 @@
 \alias{obm_init}
 \title{Init Function}
 \usage{
-obm_init(project = "", url = "openbiomaps.org", scope = c(),
+obm_init(url = "openbiomaps.org", project = "", scope = c(),
   verbose = F)
 }
 \arguments{
-\item{project}{Which project?}
-
 \item{url}{project server domain DEFAULT is openbiomaps.org}
+
+\item{project}{Which project?}
 
 \item{verbose}{print some messages}
 }
@@ -19,8 +19,8 @@ This function is initiating an OBM connection.
 }
 \examples{
 connect to a database on the default server (openbiomaps.org)
-obm_init('dead_animals')
+obm_init(project='dead_animals')
 connect on the local server intance to the butterfly database project
-obm_init('butterflies','http://localhost/biomaps')
+obm_init('http://localhost/biomaps','butterflies')
 }
 \keyword{init}

@@ -8,11 +8,11 @@
 #' @export
 #' @examples
 #' connect to a database on the default server (openbiomaps.org)
-#' obm_init('dead_animals')
+#' obm_init(project='dead_animals')
 #' connect on the local server intance to the butterfly database project
-#' obm_init('butterflies','http://localhost/biomaps')
+#' obm_init('http://localhost/biomaps','butterflies')
 
-obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
+obm_init <- function (url='openbiomaps.org',project='',scope=c(),verbose=F) {
         
     return_val <- TRUE
 
@@ -33,29 +33,29 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F) {
     OBM$server <- sub("https?://", "", url)
     pds_url <- paste(url,'/pds.php',sep='')
 
-    h <- httr::POST(pds_url,body=list(scope='get_project_list',value='all'),encode='form')
-    if (httr::status_code(h) != 200) {
-        return(paste("http error:",httr::status_code(h) ))
-    }
-    h.content <- httr::content(h,'text')
-    h.json <- jsonlite::fromJSON( h.content )
-
-    if (h.json$status=='success') {
-        h.cl <- structure(list(data = h.json$data), class = "obm_class")
-        for (i in 1:length(h.cl$data)) {
-            print(h.cl$data$project_table[i])
-        }
-    } else {
-        if (exists('message',h.json)) {
-            print(h.json$message)
-        }
-        else if (exists('data',h.json)) {
-            print(h.json$data)
-        }
-    }
-
     # get project
     if (project=='') {
+        h <- httr::POST(pds_url,body=list(scope='get_project_list',value='all'),encode='form')
+        if (httr::status_code(h) != 200) {
+            return(paste("http error:",httr::status_code(h) ))
+        }
+        h.content <- httr::content(h,'text')
+        h.json <- jsonlite::fromJSON( h.content )
+
+        if (h.json$status=='success') {
+            h.cl <- structure(list(data = h.json$data), class = "obm_class")
+            for (i in 1:nrow(h.cl$data)) {
+                print(h.cl$data$project_table[i])
+            }
+        } else {
+            if (exists('message',h.json)) {
+                print(h.json$message)
+            }
+            else if (exists('data',h.json)) {
+                print(h.json$data)
+            }
+        }
+
         project <- readline(prompt="Enter project name: ")
     }
 
