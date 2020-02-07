@@ -219,12 +219,19 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
     #}
     h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table),encode='form')
     if (httr::status_code(h) != 200) {
-        return(paste("http error:",httr::status_code(h) ))
+        print(paste("http error:",httr::status_code(h) ))
     }
     # however it sent as JSON, it is better to parse as text 
     # h.list <- httr::content(h, "parsed", "application/json")
-    h.content <- httr::content(h,'text')
-    h.json <- jsonlite::fromJSON( h.content )
+
+    if (httr::http_type(h) == 'application/json') {
+        #h.json <- httr::content(h) # kellemetlen list formában jön vissza...
+        h.content <- httr::content(h,'text')
+        h.json <- jsonlite::fromJSON( h.content )
+    } else {
+        # automatikus feldolgozás valamivé...
+        h.json <- httr::content(h)
+    }
 
     #if (typeof(h.list)=='list') {
         if (h.json$status=='success') {
