@@ -17,7 +17,7 @@ library(obm)
 obm_init('dead_animals')
 
 ### initialize connection to dead_animals database on localhost
-obm_init('dead_animals','localhost/biomaps')
+obm_init('localhost/biomaps','dead_animals')
 
 ### initialize connection without parameters
 obm_init()
