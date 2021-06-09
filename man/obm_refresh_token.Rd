@@ -4,13 +4,21 @@
 \alias{obm_refresh_token}
 \title{Auth Function}
 \usage{
-obm_refresh_token(token = OBM$token$refresh_token, url = OBM$token_url,
-  client_id = "R", verbose = F)
+obm_refresh_token(
+  token = OBM$token$refresh_token,
+  url = OBM$token_url,
+  client_id = "R",
+  verbose = F
+)
 }
 \arguments{
-\item{token}{url obm_init() provide it
-client_id default is R
-verbose}
+\item{url}{token url: obm_init() provide it}
+
+\item{client_id, }{default is R}
+
+\item{verbose, }{default is FALSE}
+
+\item{refresh}{token}
 }
 \description{
 This function allows you to refresh your OAuth2 token. It is usually a hidden function

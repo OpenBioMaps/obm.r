@@ -4,8 +4,7 @@
 \alias{obm_set}
 \title{Set Function}
 \usage{
-obm_set(scope = "", condition = "", token = OBM$token,
-  url = OBM$pds_url)
+obm_set(scope = "", condition = "", token = OBM$token, url = OBM$pds_url)
 }
 \arguments{
 \item{scope}{Which scope? e.g. set_join}

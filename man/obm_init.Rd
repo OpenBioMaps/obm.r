@@ -4,15 +4,24 @@
 \alias{obm_init}
 \title{Init Function}
 \usage{
-obm_init(url = "openbiomaps.org", project = "", scope = c(),
-  verbose = F)
+obm_init(
+  project = "",
+  url = "openbiomaps.org",
+  scope = c(),
+  verbose = F,
+  api_version = 2.3
+)
 }
 \arguments{
-\item{url}{project server domain DEFAULT is openbiomaps.org}
-
 \item{project}{Which project?}
 
+\item{url}{project server domain DEFAULT is openbiomaps.org}
+
+\item{scope}{vector of required scopes. DEFAULT is ok usually}
+
 \item{verbose}{print some messages}
+
+\item{api_version}{API version}
 }
 \description{
 This function is initiating an OBM connection.

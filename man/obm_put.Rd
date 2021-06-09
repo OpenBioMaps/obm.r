@@ -4,12 +4,27 @@
 \alias{obm_put}
 \title{Put Function}
 \usage{
-obm_put(scope = NULL, form_header = NULL, data_file = NULL,
-  media_file = NULL, form_id = "", form_data = "", soft_error = "",
-  token = OBM$token, pds_url = OBM$pds_url, data_table = OBM$project)
+obm_put(
+  scope = NULL,
+  form_header = NULL,
+  data_file = NULL,
+  media_file = NULL,
+  form_id = "",
+  form_data = "",
+  soft_error = "",
+  token = OBM$token,
+  pds_url = OBM$pds_url,
+  data_table = OBM$project
+)
 }
 \arguments{
 \item{scope}{currently put_data supported}
+
+\item{form_header}{database column names vector, if missing default is the full list from the form}
+
+\item{data_file}{a csv file with header row}
+
+\item{media_file}{a media file to attach}
 
 \item{form_id}{the form's id}
 
@@ -19,13 +34,9 @@ obm_put(scope = NULL, form_header = NULL, data_file = NULL,
 
 \item{token}{OBM$token}
 
-\item{header_names}{database column names vector, if missing default is the full list from the form}
+\item{pds_url}{OBM$pds_url}
 
-\item{csv_file}{a csv file with header row}
-
-\item{url}{OBM$url}
-
-\item{table}{OBM$table}
+\item{data_table}{OBM$project}
 }
 \description{
 This function allows put data into an OpenBioMaps server.

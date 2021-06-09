@@ -4,8 +4,14 @@
 \alias{obm_sql_query}
 \title{SQL Interface}
 \usage{
-obm_sql_query(sqlcmd, username = "", password = "", paranoid = T,
-  port = 5432, database = "gisdata")
+obm_sql_query(
+  sqlcmd,
+  username = "",
+  password = "",
+  paranoid = T,
+  port = 5432,
+  database = "gisdata"
+)
 }
 \arguments{
 \item{sqlcmd}{username most probably automatically set by create_pg_user module
