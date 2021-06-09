@@ -3,7 +3,9 @@
 #' This function is initiating an OBM connection.
 #' @param project Which project?
 #' @param url project server domain DEFAULT is openbiomaps.org
+#' @param scope vector of required scopes. DEFAULT is ok usually
 #' @param verbose print some messages
+#' @param api_version API version
 #' @keywords init
 #' @export
 #' @examples
@@ -12,15 +14,16 @@
 #' connect on the local server intance to the butterfly database project
 #' obm_init('http://localhost/biomaps','butterflies')
 
-obm_init <- function (url='openbiomaps.org',project='',scope=c(),verbose=F) {
+obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_version=2.3) {
         
     return_val <- TRUE
+    domain <- ''
 
     OBM <<- new.env()
 
     # get server url
-    if (url=='openbiomaps.org') {
-        url <- readline(prompt="Enter project url (openbiomaps.org): ")
+    if (url=='') {
+        url <- readline(prompt="Enter project url (e.g. openbiomaps.org): ")
         if (url=='') {
             url <- 'openbiomaps.org'
         }
@@ -29,41 +32,54 @@ obm_init <- function (url='openbiomaps.org',project='',scope=c(),verbose=F) {
     if (!grepl('https?://',url)) {
         url <- paste('http://',url,sep='')
     }
-    OBM$url <- url
-    OBM$server <- sub("https?://", "", url)
-    pds_url <- paste(url,'/pds.php',sep='')
+    init_url <- paste(url,'/v',api_version,'/','pds.php',sep='')
+    print(init_url)
 
     # get project
-    if (project=='') {
-        h <- httr::POST(pds_url,body=list(scope='get_project_list',value='all'),encode='form')
-        if (httr::status_code(h) != 200) {
-            return(paste("http error:",httr::status_code(h) ))
-        }
-        h.content <- httr::content(h,'text')
-        h.json <- jsonlite::fromJSON( h.content )
+    h <- httr::POST(init_url,body=list(scope='get_project_list',value='all'),encode='form')
+    if (httr::status_code(h) != 200) {
+        return(paste("http error:",httr::status_code(h) ))
+    }
+    h.content <- httr::content(h,'text')
+    h.json <- jsonlite::fromJSON( h.content )
 
-        if (h.json$status=='success') {
-            h.cl <- structure(list(data = h.json$data), class = "obm_class")
+    if (h.json$status=='success') {
+
+        h.cl <- structure(list(data = h.json$data), class = "obm_class")
+        if (project=='') {
             for (i in 1:nrow(h.cl$data)) {
                 print(h.cl$data$project_table[i])
             }
-        } else {
-            if (exists('message',h.json)) {
-                print(h.json$message)
-            }
-            else if (exists('data',h.json)) {
-                print(h.json$data)
+            project <- readline(prompt="Enter project name: ")
+        }
+        for (i in 1:nrow(h.cl$data)) {
+            if (project == h.cl$data$project_table[i]) {
+                domain <- h.cl$data$project_url[i]
             }
         }
-
-        project <- readline(prompt="Enter project name: ")
+    } else {
+        if (exists('message',h.json)) {
+            print(h.json$message)
+        }
+        else if (exists('data',h.json)) {
+            print(h.json$data)
+        }
     }
 
-    OBM$pds_url <- paste(url,'/projects/',project,'/pds.php',sep='')
-    OBM$token_url <- paste(url,'/oauth/token.php',sep='')
+    protocol <- gsub('(https?)://.*','\\1',domain)
+    server <- gsub('(https?://)(.*)(/projects/)(.*)', '\\2', domain)
+    print(protocol)
+    print(server)
+    OBM$server <- server
+
+    OBM$pds_url <- paste(domain,'/v',api_version,'/pds.php',sep='')
+    OBM$token_url <- paste(protocol,'://',server,'/oauth/token.php',sep='')
+    print(OBM$pds_url)
+    print(OBM$token_url)
+
     s <- httr::GET(OBM$token_url)
     if (httr::status_code(s) == 404 ) {
-        print("The url is not valid!")
+        print("The token url is not valid!")
         print(OBM$token_url)
         verbose <- TRUE
         return_val <- FALSE
@@ -73,9 +89,9 @@ obm_init <- function (url='openbiomaps.org',project='',scope=c(),verbose=F) {
         OBM$scope <- scope
     } else {
         # default scopes
-        #OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_history','push_data','update_profile')
         OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user')
     }
+
     # default client_id
     OBM$client_id <- 'R'
 
@@ -327,14 +343,15 @@ as.data.frame.obm_class <- function(x) {
 #'
 #' This function allows put data into an OpenBioMaps server.
 #' @param scope currently put_data supported
-#' @param header_names database column names vector, if missing default is the full list from the form
-#' @param csv_file a csv file with header row
+#' @param form_header database column names vector, if missing default is the full list from the form
+#' @param data_file a csv file with header row
+#' @param media_file a media file to attach
 #' @param form_id the form's id
 #' @param form_data JSON array of data
 #' @param soft_error JSON array of 'Yes' strings (or translations of it) to skip soft error messages
 #' @param token OBM$token
-#' @param url OBM$url
-#' @param table OBM$table
+#' @param pds_url OBM$pds_url
+#' @param data_table OBM$project
 #' @keywords put
 #' @export
 #' @examples
@@ -518,10 +535,10 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' Auth Function
 #'
 #' This function allows you to refresh your OAuth2 token. It is usually a hidden function
-#' @param token
-#' url obm_init() provide it
-#' client_id default is R
-#' verbose
+#' @param refresh token
+#' @param url token url: obm_init() provide it
+#' @param client_id, default is R
+#' @param verbose, default is FALSE
 #' @keywords refresh
 #' @export
 #' @examples
