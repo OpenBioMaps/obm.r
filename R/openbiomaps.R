@@ -20,6 +20,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     domain <- ''
 
     OBM <<- new.env()
+    OBM$shared_link <- ''
 
     # get server url
     if (url=='') {
@@ -33,7 +34,9 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         url <- paste('http://',url,sep='')
     }
     init_url <- paste(url,'/v',api_version,'/','pds.php',sep='')
-    print(init_url)
+    if (verbose==T) {
+        message('Init url: ',init_url)
+    }
 
     # get project
     h <- httr::POST(init_url,body=list(scope='get_project_list',value='all'),encode='form')
@@ -68,19 +71,18 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
 
     protocol <- gsub('(https?)://.*','\\1',domain)
     server <- gsub('(https?://)(.*)(/projects/)(.*)', '\\2', domain)
-    print(protocol)
-    print(server)
     OBM$server <- server
 
     OBM$pds_url <- paste(domain,'/v',api_version,'/pds.php',sep='')
     OBM$token_url <- paste(protocol,'://',server,'/oauth/token.php',sep='')
-    print(OBM$pds_url)
-    print(OBM$token_url)
+    if (verbose==T) {
+        message('PDS url: ',OBM$pds_url)
+        message('Token url: ',OBM$token_url)
+    }
 
     s <- httr::GET(OBM$token_url)
     if (httr::status_code(s) == 404 ) {
-        print("The token url is not valid!")
-        print(OBM$token_url)
+        message("The token url is not valid! ", OBM$token_url)
         verbose <- TRUE
         return_val <- FALSE
     }
@@ -126,14 +128,14 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         e <- OBM$time + OBM$token$expires_in
         if (length(e)  && e < timestamp) {
             if (verbose) {
-                print("Token expired, trying to refresh...")
+                message("Token expired, trying to refresh...")
                 return(FALSE)
             }
             # expired
             obm_refresh_token(verbose=verbose)
         } else {
             if (verbose) {
-                print(paste("Token is valid until:",as.POSIXlt(OBM$time+OBM$token$expires_in,origin="1970-01-01")))
+                message("Token is valid until:",as.POSIXlt(OBM$time+OBM$token$expires_in,origin="1970-01-01"))
             }
         }
     } else {
@@ -148,9 +150,9 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             }
         }
         scope <- paste(scope, collapse = ' ')
-        h <- httr::POST(url,body=list(grant_type='password',username=username,password=password,client_id=client_id,scope=scope))
+        h <- httr::POST(url,body=list(grant_type='password', username=username, password=password, client_id=client_id, scope=scope))
         if (httr::status_code(h)==401) {
-            print('authentication failed!')
+            message('authentication failed!')
             return(FALSE)
         }
         z <- Sys.time()
@@ -168,12 +170,66 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             if ( exists('time', envir=OBM, inherits=F)  & !is.null(OBM$time)) {
                 rm(list=c('time'),envir=OBM)
             }
-            print("Authentication failed.")
+            message("Authentication failed.")
             return(FALSE)
         }
     }
     return(TRUE)
 }
+
+#' Connect by shared link function
+#'
+#' This function allows you to connect to an OBM server with a shared link
+#' It using client_credentials authentication, so it is returning an access_token
+#' Return an oauth token
+#' @param an url link
+#' @keywords connect auth shared link
+#' @export
+#' @examples
+#' obm_connect()
+#' token <- obm_connect('abcdefghikl123456789')
+
+obm_connect <- function (link='',verbose=F) {
+
+    if ( link=='' ) {
+        link <- readline(prompt="Paste shared link: ")
+    } 
+
+    h <- httr::POST(OBM$pds_url,body=list(shared_link=link, scope='shared_link'))
+    if (httr::status_code(h)==401) {
+        message('authorization failed!')
+        return(FALSE)
+    }
+    if (httr::status_code(h) != 200) {
+        message("http error:",httr::status_code(h) )
+        return(FALSE)
+    }
+
+    if (httr::http_type(h) == 'application/json') {
+        h.content <- httr::content(h,'text')
+        h.json <- jsonlite::fromJSON( h.content )
+    } else {
+        h.json <- httr::content(h)
+    }
+
+    if (h.json$status=='success') {
+        
+        z <- Sys.time()
+        OBM$token <- h.json$data
+        OBM$time <- unclass(z)
+        OBM$shared_link <- link
+
+    } else {
+        if (exists('message',h.json)) {
+            return(h.json$message)
+        }
+        else if (exists('data',h.json)) {
+            return(h.json$data)
+        }
+    }
+}
+
+
 
 #' unix like password function
 #' used in obm_auth()
@@ -233,9 +289,9 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
     #if (condition=='') {
     #    condition <- NULL
     #}
-    h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table),encode='form')
+    h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table,shared_link=OBM$shared_link),encode='form')
     if (httr::status_code(h) != 200) {
-        print(paste("http error:",httr::status_code(h) ))
+        message("http error:",httr::status_code(h) )
     }
     # however it sent as JSON, it is better to parse as text 
     # h.list <- httr::content(h, "parsed", "application/json")
@@ -431,13 +487,13 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
         }
         if (!is.null(form_header) && is.vector(form_header)) {
             if ( !length(which(form_header=='obm_files_id')) ) {
-                print ("obm_files_id column should be exists in header names")
+                message ("obm_files_id column should be exists in header names")
             } else {
                 obm_files_id_idx <- which(form_header=='obm_files_id')
             }
         } else {
             if ( !length(which(colnames(form_data)=='obm_files_id')) ) {
-                print ("obm_files_id column should be exists in header names")
+                message ("obm_files_id column should be exists in header names")
             } else {
                 obm_files_id_idx <- which(colnames(form_data)=='obm_files_id')
             }
@@ -561,7 +617,7 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
         if ( exists('time', envir=OBM, inherits=F) & !is.null(OBM$time)) {
             rm(list=c('time'),envir=OBM)
         }
-        print("Authentication disconnected.")
+        message("Authentication disconnected.")
         if (verbose) {
             print(j)
         }
