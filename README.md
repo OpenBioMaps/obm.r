@@ -13,11 +13,11 @@ library(obm)
 
 ## usage examples
 
-### initialize connection to dead_animals database on openbiomaps.org
+### initialize connection to dead_animals database on openbiomaps.org. If the database is registered in openbiomaps.org it might be works without the url param
 obm_init('dead_animals')
 
-### initialize connection to dead_animals database on localhost
-obm_init('localhost/biomaps','dead_animals')
+### initialize connection to dead_animals database on a specified server
+obm_init('dead_animals','https://somewhere.something')
 
 ### initialize connection without parameters
 obm_init()
@@ -25,20 +25,23 @@ obm_init()
 ### authenticating without parameters
 obm_auth()
 
-### get avilable forms 
-form_list <- obm_get('get_form_list')
-
-### get form data 
-form_data <- obm_get('get_form_data',73)
-
 ### query a range of data from the main table. Returns obm_class
 data <- obm_get('get_data','39980:39988')
 
 ### query all data from the main table. Returns obm_class
 data <- obm_get('get_data','*')
 
+### query all data from an additional data table. Returns obm_class
+data <- obm_get('get_data','*',table='buildings')
+
 ### query data based on column filter. Returns obm_class
-data <- obm_get('get_data','faj=Parus palustris')
+data <- obm_get('get_data','species=Parus palustris')
+
+### get avilable forms 
+form_list <- obm_get('get_form_list')
+
+### get form data 
+form_data <- obm_get('get_form_data',73)
 
 ### offline form fill - THIS FUNCTION IS NOT READY
 obm_form_fill(form_data)
