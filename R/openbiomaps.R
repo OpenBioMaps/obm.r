@@ -39,7 +39,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     }
 
     # get project
-    h <- httr::POST(init_url,body=list(scope='get_project_list',value='all'),encode='form')
+    h <- httr::POST(init_url,body=list(scope='get_project',value='get_all_projects'),encode='form')
     if (httr::status_code(h) != 200) {
         return(paste("http error:",httr::status_code(h) ))
     }
@@ -91,7 +91,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         OBM$scope <- scope
     } else {
         # default scopes
-        OBM$scope <- c('get_form_data','get_form_list','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user')
+        OBM$scope <- c('get_form','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user')
     }
 
     # default client_id
@@ -109,7 +109,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
 #' This function allows you to connect to and OBM server.
 #' @param username Your OBM username (email)
 #' @param password Your password
-#' @param scope vector OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history
+#' @param scope vector for OAuth2 scopes 
 #' @param client_id Default is R
 #' @param url OAuth2 token url obm_init() provide it
 #' @param verbose print some messages
@@ -286,13 +286,21 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
             obm_refresh_token()
         }
     }
-    #if (condition=='') {
-    #    condition <- NULL
-    #}
-    h <- httr::POST(url,body=list(access_token=token$access_token,scope=scope,value=condition,table=table,shared_link=OBM$shared_link),encode='form')
+    if (scope == 'get_form_list') {
+        scope = 'get_form'
+        value = 'get_form_list'
+    }
+    if (scope == 'get_form_data') {
+        scope = 'get_form'
+    }
+
+    h <- httr::POST(url,
+                    body=list(access_token=token$access_token, scope=scope, value=condition, table=table, shared_link=OBM$shared_link),
+                    encode='form')
     if (httr::status_code(h) != 200) {
         message("http error:",httr::status_code(h) )
     }
+
     # however it sent as JSON, it is better to parse as text 
     # h.list <- httr::content(h, "parsed", "application/json")
 
@@ -412,7 +420,7 @@ as.data.frame.obm_class <- function(x) {
 #' @export
 #' @examples
 #' using own list of columns
-#'   obm_get('get_form_list',0)
+#'   obm_get('get_form_list')
 #'   form <- obm_get('get_form_data',57)
 #'   columns <- unlist(form[,'column'])
 #'   t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
@@ -699,3 +707,115 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
     RPostgreSQL::dbUnloadDriver(drv)
     return(df_postgres_result)
 }
+
+#' Repozitorium Function
+#'
+#' This function allows put data into a repozitorium.
+#' @param 
+#' @keywords repozitorium
+#' @export
+#' @examples
+#' repo_state <- obm_repo('get')
+#' repo_state <- obm_repo('put',data_frame,metadata)
+#'
+
+obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,repo_metadata=NULL,repo_data=NULL) {
+
+    if ( is.null(scope) ) {
+        return ("usage: obm_repo(put|get,...)")
+    }
+    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+        # auto refresh token 
+        z <- Sys.time()
+        timestamp <- unclass(z)
+        e <- OBM$time + OBM$token$expires_in
+        if (length(e) && e < timestamp) {
+            # expired
+            obm_refresh_token()
+        }
+    }
+
+
+    # Metadata
+    if (!is.null(repo_metadata) && is.vector(repo_metadata)) {
+        repo_metadata <- jsonlite::toJSON(repo_metadata)
+    }
+    
+    # Data from dataframe/table/object
+    repo_data <- jsonlite::toJSON(repo_data)
+
+
+    # upload metadata
+    if (scope == 'put') {
+        h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope='use_repo', metadata=repo_metadata, data=repo_data),
+                    encode="form")
+
+        j <- httr::content(h, "parsed", "application/json")
+
+        pid <- NULL
+        if (j$status == "success") {
+            # metadata uploded, get PID
+            pid <- unlist(j$data)
+        }
+
+
+    
+        # upload files
+        if (!is.null( data_file )) {
+
+            files <- list()
+
+            # upload file
+            for ( i in data_file ) {
+                h <- httr::POST(pds_url,
+                        body=list(access_token=token$access_token, scope='use_repo', data_files=httr::upload_file(i)),
+                        encode="multipart")
+                j <- httr::content(h, "parsed", "application/json")
+                if (j$status == "success") {
+                    # ...
+                }
+            }
+        }
+
+        if (httr::status_code(h) != 200) {
+            return(paste("http error:",httr::status_code(h),h ))
+        }
+    }
+    else if (scope == 'get') {
+        # ... repo_get?
+    }
+
+    h.list <- httr::content(h, "parsed", "application/json")
+    h.list
+}
+
+#' repo_get Function
+#'
+#' This is repozitorium function 
+#' @param obm_class S3 class object
+#' @keywords as.data.frame
+#' @export
+
+repo_get <- function(scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
+
+    repo <- ''
+
+    h <- httr::POST(pds_url,
+                body=list(access_token=token$access_token, scope='use_repo', value='get_repo'),
+                encode="form")
+
+    j <- httr::content(h, "parsed", "application/json")
+    if (j$status == "success") {
+        # metadata uploded, get PID
+        repo <- unlist(j$data)
+    }
+
+    # repo
+    #   $name
+    #   $url
+    #   $... ?
+
+    return(repo)
+}
+
