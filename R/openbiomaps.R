@@ -39,7 +39,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     }
 
     # get project
-    h <- httr::POST(init_url,body=list(scope='get_project',value='get_all_projects'),encode='form')
+    h <- httr::POST(init_url,body=list(scope='get_project',value='get_project_list'),encode='form')
     if (httr::status_code(h) != 200) {
         return(paste("http error:",httr::status_code(h) ))
     }
@@ -91,7 +91,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         OBM$scope <- scope
     } else {
         # default scopes
-        OBM$scope <- c('get_form','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user')
+        OBM$scope <- c('get_form','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user','use_repo')
     }
 
     # default client_id
@@ -298,7 +298,12 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
                     body=list(access_token=token$access_token, scope=scope, value=condition, table=table, shared_link=OBM$shared_link),
                     encode='form')
     if (httr::status_code(h) != 200) {
-        message("http error:",httr::status_code(h) )
+        if (httr::status_code(h) == 403) {
+            message( "Resource access denied" )
+        } 
+        else if (httr::status_code(h) == 500) {
+            message( "Server error" )
+        }
     }
 
     # however it sent as JSON, it is better to parse as text 

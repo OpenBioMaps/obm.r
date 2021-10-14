@@ -43,7 +43,7 @@ This function allows put data into an OpenBioMaps server.
 }
 \examples{
 using own list of columns
-  obm_get('get_form_list',0)
+  obm_get('get_form_list')
   form <- obm_get('get_form_data',57)
   columns <- unlist(form[,'column'])
   t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')

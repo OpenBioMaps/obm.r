@@ -19,7 +19,7 @@ obm_auth(
 
 \item{password}{Your password}
 
-\item{scope}{vector OAuth2 scopes scecified in the server DEFAULTS are: get_form_data get_form_list get_profile get_data get_history}
+\item{scope}{vector for OAuth2 scopes}
 
 \item{client_id}{Default is R}
 

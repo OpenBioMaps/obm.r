@@ -8,4 +8,4 @@ License: GPL3
 LazyData: true
 Imports: httr, jsonlite, RPostgreSQL
 Encoding: UTF-8
-RoxygenNote: 7.1.1.9001
+RoxygenNote: 7.1.2
