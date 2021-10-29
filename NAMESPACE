@@ -2,7 +2,10 @@
 
 S3method(as.data.frame,obm_class)
 S3method(summary,obm_class)
+export(analyse)
 export(as.obm_class)
+export(create_table)
+export(getExtension)
 export(obm_auth)
 export(obm_connect)
 export(obm_fill_form)

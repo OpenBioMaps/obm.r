@@ -716,19 +716,39 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
 #' Repozitorium Function
 #'
 #' This function allows put data into a repozitorium.
-#' @param 
+#' @param scope get or put 
+#' @param params list which contains parameters for repozitorium
 #' @keywords repozitorium
 #' @export
 #' @examples
-#' repo_state <- obm_repo('get')
-#' repo_state <- obm_repo('put',data_frame,metadata)
+#' repo_state <- obm_repo('get',params=list(type='dataverse',...))
 #'
-
-obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,repo_metadata=NULL,repo_data=NULL) {
+#' Getting content of the named dataverse
+#'      obm_repo('get',params=list(id='DINPI'))
+#'
+#' Get JSON Representation of a Dataset
+#'      repo_state <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/10.48428/ADATTAR/FJCJ26'))
+#'
+#' Get versions of dataset
+#'      obm_repo('get',params=list(type='datasets',id=42))
+#'      obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+#'
+#' Get a file
+#'      k<-obm_repo('get',params=list(type='datafile',id=83))
+#'      k<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+#'
+#' Create a dateset
+#'      repo_state <- obm_repo('put',params=list(type='datasets')
+#'
+#' Add file to dataset
+#'      repo_state <- obm_repo('put',params=list(type='datafile',file='@...',dataset='....'))
+#'
+obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,params=NULL) {
 
     if ( is.null(scope) ) {
         return ("usage: obm_repo(put|get,...)")
     }
+
     if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
         # auto refresh token 
         z <- Sys.time()
@@ -740,59 +760,131 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         }
     }
 
+    data_file <- NULL
 
-    # Metadata
-    if (!is.null(repo_metadata) && is.vector(repo_metadata)) {
-        repo_metadata <- jsonlite::toJSON(repo_metadata)
-    }
-    
-    # Data from dataframe/table/object
-    repo_data <- jsonlite::toJSON(repo_data)
-
-
-    # upload metadata
+    # Upload/create processes
     if (scope == 'put') {
-        h <- httr::POST(pds_url,
-                    body=list(access_token=token$access_token, scope='use_repo', metadata=repo_metadata, data=repo_data),
-                    encode="form")
+        
+        # Upload files
+        if (params$type == 'datafile') {
+            if (!is.null(params$file)) {
+                data_file = params$file     # vector of files
+                params <- within(params, rm(file))
+            }
+            
+            # Data from local files / choose and upload files
+            if (!is.null( data_file )) {
 
-        j <- httr::content(h, "parsed", "application/json")
-
-        pid <- NULL
-        if (j$status == "success") {
-            # metadata uploded, get PID
-            pid <- unlist(j$data)
-        }
-
-
-    
-        # upload files
-        if (!is.null( data_file )) {
-
-            files <- list()
-
-            # upload file
-            for ( i in data_file ) {
-                h <- httr::POST(pds_url,
-                        body=list(access_token=token$access_token, scope='use_repo', data_files=httr::upload_file(i)),
-                        encode="multipart")
-                j <- httr::content(h, "parsed", "application/json")
-                if (j$status == "success") {
-                    # ...
+                params <- rjson::toJSON(params)
+                # Add files to the datasets
+                # upload file
+                for ( i in data_file ) {
+                    h <- httr::POST(pds_url,
+                            body=list(access_token=token$access_token, scope='use_repo', params=params, method='put', data_files=httr::upload_file(i)),
+                            encode="multipart")
+                    
+                    if (httr::status_code(h) != 200) {
+                        return(paste("http error:",httr::status_code(h),h ))
+                    }
+                    
+                    j <- httr::content(h, "parsed", "application/json")
+                    
+                    if (j$status == "success") {
+                        # Processing response
+                        z <- rjson::fromJSON(j$data)
+                        return( z )
+                    } else {
+                        return( j )
+                    }
                 }
             }
-        }
+        # Create datasets
+        } else if (params$type == 'datasets') {
+            if (is.null(params$metadata)) {
+                m <- list(  
+                        "Title"='',
+                        "AuthorName"='',
+                        "AuthorAffiliation"='',
+                        "ContactName"='',
+                        "ContactEmail"='',
+                        "Description"='',
+                        "Subject"='')
 
-        if (httr::status_code(h) != 200) {
-            return(paste("http error:",httr::status_code(h),h ))
+                print ( "You must fill the follwing metadata attributes:" )
+                print ( m )
+                m$Title <- readline(prompt="Enter title: ")
+                m$AuthorName <- readline(prompt="Enter author's name: ")
+                m$AuthorAffiliation <- readline(prompt="Enter author's affiliation: ")
+                m$ContactName <- readline(prompt="Enter contact's name: ")
+                m$ContactEmail <- readline(prompt="Enter contact's email: ")
+                m$Description <- readline(prompt="Enter description: ")
+
+                s <- list('Agricultural Sciences',
+                    'Arts and Humanities',
+                    'Astronomy and Astrophysics',
+                    'Business and Management',
+                    'Chemistry',
+                    'Computer and Information Science',
+                    'Earth and Environmental Sciences',
+                    'Engineering',
+                    'Law',
+                    'Mathematical Sciences',
+                    'Medicine, Health and Life Sciences',
+                    'Physics',
+                    'Social Sciences',
+                    'Other')
+
+                print ( s )
+                m$Subject <- list(readline(prompt="Enter subject: "))
+
+                params$metadata <- m
+	    }
+
+            params <- rjson::toJSON(params)
+            h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope='use_repo', params=params, method='put'),
+                    encode="form")
+
+            if (httr::status_code(h) != 200) {
+                return(paste("http error:",httr::status_code(h),h ))
+            }
+            
+            j <- httr::content(h, "parsed", "application/json")
+            
+            if (j$status == "success") {
+                # Processing response
+                z <- rjson::fromJSON(j$data)
+                return( z )
+            } else {
+                return ( j )
+            }
         }
     }
     else if (scope == 'get') {
-        # ... repo_get?
-    }
+        # Getting files/info
 
-    h.list <- httr::content(h, "parsed", "application/json")
-    h.list
+        params <- rjson::toJSON(params)
+
+        h <- httr::POST(pds_url,
+                body=list(access_token=token$access_token, scope='use_repo', params=params, method='get'),
+                encode="form")
+
+        j <- httr::content(h)
+        if ( class(j) == 'raw' ) {
+            jk <- httr::headers(h)
+            return(list(header=jk$`content-disposition`,data=j))
+        } else {
+            j <- httr::content(h, "parsed", "application/json")
+        }
+
+        if (j$status == "success") {
+            # metadata uploded, get PID
+            z <- rjson::fromJSON(j$data)
+            return( z )
+        } else {
+            return ( j )
+        }
+    } 
 }
 
 #' repo_get Function
@@ -823,4 +915,5 @@ repo_get <- function(scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=O
 
     return(repo)
 }
+
 
