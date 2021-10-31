@@ -713,6 +713,17 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
     return(df_postgres_result)
 }
 
+#' Helper Function
+#'
+#' This function allows put data into a repozitorium.
+#' @param n replication 
+#' @keywords random text
+#' @export
+randtext <- function(n = 5000) {
+  a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
+  paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
+}
+
 #' Repozitorium Function
 #'
 #' This function allows put data into a repozitorium.
@@ -721,27 +732,40 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
 #' @keywords repozitorium
 #' @export
 #' @examples
-#' repo_state <- obm_repo('get',params=list(type='dataverse',...))
+#' Listing dataverse      
+#'      obm_repo('get',params=list(type='dataverse',...))
 #'
 #' Getting content of the named dataverse
 #'      obm_repo('get',params=list(id='DINPI'))
 #'
 #' Get JSON Representation of a Dataset
-#'      repo_state <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/10.48428/ADATTAR/FJCJ26'))
+#'      res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/10.48428/ADATTAR/FJCJ26'))
+#'      repo_summary(res)
 #'
 #' Get versions of dataset
 #'      obm_repo('get',params=list(type='datasets',id=42))
 #'      obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
 #'
 #' Get a file
-#'      k<-obm_repo('get',params=list(type='datafile',id=83))
-#'      k<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+#'      res<-obm_repo('get',params=list(type='datafile',id=83))
+#'      res<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
 #'
 #' Create a dateset
-#'      repo_state <- obm_repo('put',params=list(type='datasets')
+#'      res <- obm_repo('put',params=list(type='datasets')
+#'      repo_summary(res)
 #'
-#' Add file to dataset
-#'      repo_state <- obm_repo('put',params=list(type='datafile',file='@...',dataset='....'))
+#' Add file to dataset (referenced by id or persistentUrl)
+#'      res <- obm_repo('put',params=list(type='datafile',file='...',id= | persistentUrl=))
+#'      repo_summary(res)
+#'
+#' Add object as file to dataset (referenced by id or persistentUrl)
+#' - automatically convert data object to JSON
+#' - returning with the last file's state
+#'      res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, data=list(results=res.list,init_params=init.df)))
+#'      repo_summary(res)
+#'
+#' Delete file
+#'      res <- obm_repo('delete',params=list(type='datafile',id=...))
 #'
 obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,params=NULL) {
 
@@ -767,13 +791,48 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         
         # Upload files
         if (params$type == 'datafile') {
+            tmp_dir <- NULL
             if (!is.null(params$file)) {
-                data_file = params$file     # vector of files
+                data_file <- params$file     # vector of files
                 params <- within(params, rm(file))
+            } else {
+                if (!is.null(params$data)) {
+                    tmp_dir <- paste("obm_temp_dir-",randtext(1),sep='')
+                    dir.create(tmp_dir)
+                    setwd(tmp_dir)
+                    if (!is.null(params$currentSession)) {
+                        # Create files from ws-data
+                        save.image(file='currentSession.RData')
+                        data_file <- 'currentSession.RData'
+                    }
+
+                    for ( i in 1:length(params$data) ) {
+                        x <- rjson::toJSON(params$data[[i]])
+                        writeLines(x, paste('o_',names(params$data)[i],'.json',sep=''), useBytes=T)
+                        data_file <- c(data_file, paste(tmp_dir,'/','o_',names(params$data)[i],'.json',sep=''))
+                    }
+                    setwd("..")
+                } else {
+                    warning('params$file or params$data should be given if you would like to upload something')
+                }
             }
             
             # Data from local files / choose and upload files
             if (!is.null( data_file )) {
+
+                # Check file exist in the dataset for automatic replacing
+                k <- obm_repo('get',params=list(type='datasets',id=params$id))
+                dataset_state <- k$data$versionState
+                existing_files <- k$data$files[[1]]$label
+                for (i in 1:length(existing_files)) {
+                    if (existing_files[i] == basename(data_file)) {
+                        if (dataset_state == 'DRAFT') {
+                            res <- obm_repo('delete',params=list(type='datafile',id=k$data$files[[1]]$dataFile$id[i]))
+                        } else {
+                            params$replace_file <- k$data$files[[1]]$dataFile$id[i]
+                        }
+                    }
+                }
 
                 params <- rjson::toJSON(params)
                 # Add files to the datasets
@@ -791,12 +850,18 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                     
                     if (j$status == "success") {
                         # Processing response
-                        z <- rjson::fromJSON(j$data)
-                        return( z )
+                        z <- jsonlite::fromJSON(j$data)
+                        #return( z )
                     } else {
                         return( j )
                     }
                 }
+                # return last file data
+                return( z )
+
+            }
+            if (!is.null(tmp_dir)) {
+                unlink(tmp_dir, recursive=TRUE)
             }
         # Create datasets
         } else if (params$type == 'datasets') {
@@ -853,8 +918,17 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
             
             if (j$status == "success") {
                 # Processing response
-                z <- rjson::fromJSON(j$data)
+                z <- jsonlite::fromJSON(j$data)
                 return( z )
+
+                # response can be lightweighted by the request type, e.g.
+                # request: dataset by id
+                # response: resp <- obm_repo(...)
+                # names(resp$data$files[[1]][1,])
+                # [1] "description"      "label"            "restricted"       "version"         
+                # [5] "datasetVersionId" "categories"       "dataFile"
+                # nrow(ki$data$files[[1]])
+                # 21
             } else {
                 return ( j )
             }
@@ -863,57 +937,70 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
     else if (scope == 'get') {
         # Getting files/info
 
+        p <- params
         params <- rjson::toJSON(params)
 
         h <- httr::POST(pds_url,
                 body=list(access_token=token$access_token, scope='use_repo', params=params, method='get'),
                 encode="form")
 
-        j <- httr::content(h)
+        j <- try(httr::content(h),silent=T)
+        if (inherits(x, "try-error")) {
+            j <- httr::content(h,"text")
+        }
         if ( class(j) == 'raw' ) {
             jk <- httr::headers(h)
             return(list(header=jk$`content-disposition`,data=j))
         } else {
+            if (!is.null(p$type) && p$type == 'datafile') {
+                jk <- httr::headers(h)
+                return(list(header=jk$`content-disposition`,data=j))
+            }
             j <- httr::content(h, "parsed", "application/json")
         }
 
         if (j$status == "success") {
             # metadata uploded, get PID
-            z <- rjson::fromJSON(j$data)
+            z <- jsonlite::fromJSON(j$data)
+            # dataset
+            # response can be lightweighted by the request type, e.g.
+            # response$data$metadataBlocks$citation$fields[[1]]
+            # Dataset title: response$data$metadataBlocks$citation$fields[[1]]$value[[1]]
+            # Dataset author: response$data$metadataBlocks$citation$fields[[1]]$value[[2]]$authorName$value
+            # Dataset author affiliation: response$data$metadataBlocks$citation$fields[[1]]$value[[2]]$authorAffiliation$value
+            # Dataset files: response$data$files
             return( z )
         } else {
             return ( j )
         }
     } 
-}
+    else if (scope == 'delete') {
 
-#' repo_get Function
-#'
-#' This is repozitorium function 
-#' @param obm_class S3 class object
-#' @keywords as.data.frame
-#' @export
+        p <- params
+        params <- rjson::toJSON(params)
 
-repo_get <- function(scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
-
-    repo <- ''
-
-    h <- httr::POST(pds_url,
-                body=list(access_token=token$access_token, scope='use_repo', value='get_repo'),
+        h <- httr::POST(pds_url,
+                body=list(access_token=token$access_token, scope='use_repo', params=params, method='delete'),
                 encode="form")
 
-    j <- httr::content(h, "parsed", "application/json")
-    if (j$status == "success") {
-        # metadata uploded, get PID
-        repo <- unlist(j$data)
+        j <- httr::content(h)
+
+        return(j)
     }
+}
 
-    # repo
-    #   $name
-    #   $url
-    #   $... ?
+#' repo_summary Function
+#'
+#' This is repozitorium helper function 
+#' Creating readable labels, notes and summary of repo output
+#' @param x repo output object
+#' @keywords label summary
+#' @export
+repo_summary <- function(x=NULL) {
 
-    return(repo)
+    r <- unlist(x)
+
+    return(r)
 }
 
 

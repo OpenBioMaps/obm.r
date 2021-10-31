@@ -20,28 +20,4 @@ obm_repo(
 \description{
 This function allows put data into a repozitorium.
 }
-\examples{
-repo_state <- obm_repo('get',params=list(type='dataverse',...))
-
-Getting content of the named dataverse
-     obm_repo('get',params=list(id='DINPI'))
-
-Get JSON Representation of a Dataset
-     repo_state <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/10.48428/ADATTAR/FJCJ26'))
-
-Get versions of dataset
-     obm_repo('get',params=list(type='datasets',id=42))
-     obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
-
-Get a file
-     k<-obm_repo('get',params=list(type='datafile',id=83))
-     k<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
-
-Create a dateset
-     repo_state <- obm_repo('put',params=list(type='datasets')
-
-Add file to dataset
-     repo_state <- obm_repo('put',params=list(type='datafile',file='@...',dataset='....'))
-
-}
 \keyword{repozitorium}
