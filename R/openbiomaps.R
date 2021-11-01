@@ -732,26 +732,45 @@ randtext <- function(n = 5000) {
 #' @keywords repozitorium
 #' @export
 #' @examples
+#'
+#' Getting server conf
+#'      obm_repo('get',params=list(server_conf=1))
+#'
+#' Set the default server/project-repo for each of the following operations 
+#'    - default is 0
+#'    - set possible id's from server_conf query above
+#'      obm_repo('set',params=list(REPO=x))
+#'      obm_repo('set',params=list(REPO=x, PARENT=xxx))
+#'
 #' Listing dataverse      
-#'      obm_repo('get',params=list(type='dataverse',...))
+#'      obm_repo('get',params=list(type='dataverse',contents=1))
+#'      obm_repo('get',params=list(type='dataverse'))
 #'
 #' Getting content of the named dataverse
 #'      obm_repo('get',params=list(id='DINPI'))
 #'
 #' Get JSON Representation of a Dataset
-#'      res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/10.48428/ADATTAR/FJCJ26'))
+#'      res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
+#'      res <- obm_repo('get',params=list(type='datasets',id=xxx))
 #'      repo_summary(res)
 #'
 #' Get versions of dataset
-#'      obm_repo('get',params=list(type='datasets',id=42))
+#'      obm_repo('get',params=list(type='datasets',id=42,version=''))
 #'      obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+#'
+#' Get files of dataset
+#'      obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
 #'
 #' Get a file
 #'      res<-obm_repo('get',params=list(type='datafile',id=83))
 #'      res<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
 #'
+#' Create a dataverse
+#'      res <- obm_repo('put',params=list(type='dataverse'))
+#'      repo_summary(res)
+#'
 #' Create a dateset
-#'      res <- obm_repo('put',params=list(type='datasets')
+#'      res <- obm_repo('put',params=list(type='datasets',dataverse=''))
 #'      repo_summary(res)
 #'
 #' Add file to dataset (referenced by id or persistentUrl)
@@ -765,8 +784,10 @@ randtext <- function(n = 5000) {
 #'      repo_summary(res)
 #'
 #' Delete file
-#'      res <- obm_repo('delete',params=list(type='datafile',id=...))
+#'      res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
 #'
+#' Set settings
+#'      res <- obm_repo('set',params=list(type='dataset',id=...))
 obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,params=NULL) {
 
     if ( is.null(scope) ) {
@@ -784,10 +805,18 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         }
     }
 
-    data_file <- NULL
+
+    if (!is.null(OBM$default_repo)) {
+        params$REPO = OBM$default_repo
+    }
+    if (!is.null(OBM$parent_dataverse)) {
+        params$PARENT_DATAVERSE = OBM$parent_dataverse
+    }
 
     # Upload/create processes
     if (scope == 'put') {
+        
+        data_file <- NULL
         
         # Upload files
         if (params$type == 'datafile') {
@@ -827,7 +856,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                 for (i in 1:length(existing_files)) {
                     if (existing_files[i] == basename(data_file)) {
                         if (dataset_state == 'DRAFT') {
-                            res <- obm_repo('delete',params=list(type='datafile',id=k$data$files[[1]]$dataFile$id[i]))
+                            res <- obm_repo('dssssssssssssssxxy2wwwwwwewww3w         ;lete',params=list(type='datafile',id=k$data$files[[1]]$dataFile$id[i]))
                         } else {
                             params$replace_file <- k$data$files[[1]]$dataFile$id[i]
                         }
@@ -849,9 +878,8 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                     j <- httr::content(h, "parsed", "application/json")
                     
                     if (j$status == "success") {
-                        # Processing response
-                        z <- jsonlite::fromJSON(j$data)
-                        #return( z )
+                        # Processing response....?
+                        z <- j$data
                     } else {
                         return( j )
                     }
@@ -863,6 +891,64 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
             if (!is.null(tmp_dir)) {
                 unlink(tmp_dir, recursive=TRUE)
             }
+        # Create a dataverse
+        } else if (params$type == 'dataverse') {
+            if (is.null(params$metadata)) {
+                m <- list(  
+                        "Name"='',
+                        "Alias"='',
+                        "ContactEmail0"='',
+                        "ContactEmail1"='',
+                        "Affiliation"='',
+                        "Description"='',
+                        "DataverseType"='')
+ 
+                message( "You must fill the follwing metadata attributes:" )
+                cat( "  ", rownames(as.data.frame(unlist(m))), "\n\n" )
+
+                m$Name <- readline(prompt="Enter name: ")
+                m$Alias <- readline(prompt="Enter alias name: ")
+                m$ContactEmail0 <- readline(prompt="Enter contact's email-1: ")
+                m$ContactEmail1 <- readline(prompt="Enter contact's email-2: ")
+                m$Affiliation <- readline(prompt="Enter author's affiliation: ")
+                m$Description <- readline(prompt="Enter description: ")
+
+                s <- list('DEPARTMENT','JOURNALS','LABORATORY','ORGANIZATIONS_INSTITUTIONS','RESEARCHERS','RESEARCH_GROUP','RESEARCH_PROJECTS','TEACHING_COURSES','UNCATEGORIZED');
+
+                print ( unlist(s) )
+                m$DataverseType <- readline(prompt="Enter dataverse type: ")
+
+                params$metadata <- m
+	    }
+
+            params <- rjson::toJSON(params)
+            h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope='use_repo', params=params, method='put'),
+                    encode="form")
+
+            if (httr::status_code(h) != 200) {
+                return(paste("http error:",httr::status_code(h),h ))
+            }
+            
+            j <- httr::content(h, "parsed", "application/json")
+            
+            if (j$status == "success") {
+                return ( j$data )
+
+                # Processing response ?
+                # response can be lightweighted by the request type, e.g.
+                # request: dataset by id
+                # response: resp <- obm_repo(...)
+                # names(resp$data$files[[1]][1,])
+                # [1] "description"      "label"            "restricted"       "version"         
+                # [5] "datasetVersionId" "categories"       "dataFile"
+                # nrow(ki$data$files[[1]])
+                # 21
+            } else {
+                return ( j )
+            }
+
+
         # Create datasets
         } else if (params$type == 'datasets') {
             if (is.null(params$metadata)) {
@@ -875,8 +961,9 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                         "Description"='',
                         "Subject"='')
 
-                print ( "You must fill the follwing metadata attributes:" )
-                print ( m )
+                message( "You must fill the follwing metadata attributes:" )
+                cat( "  ", rownames(as.data.frame(unlist(m))), "\n\n" )
+
                 m$Title <- readline(prompt="Enter title: ")
                 m$AuthorName <- readline(prompt="Enter author's name: ")
                 m$AuthorAffiliation <- readline(prompt="Enter author's affiliation: ")
@@ -899,9 +986,9 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                     'Social Sciences',
                     'Other')
 
-                print ( s )
-                m$Subject <- list(readline(prompt="Enter subject: "))
-
+                print ( unlist(s) )
+                read <- strsplit(readline(prompt="Enter subjects (e.g. 10 11): "), "\\s", perl=TRUE)
+                m$Subject <- s[as.numeric(read[[1]])]
                 params$metadata <- m
 	    }
 
@@ -917,10 +1004,9 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
             j <- httr::content(h, "parsed", "application/json")
             
             if (j$status == "success") {
-                # Processing response
-                z <- jsonlite::fromJSON(j$data)
-                return( z )
+                return( j$data )
 
+                # Processing response
                 # response can be lightweighted by the request type, e.g.
                 # request: dataset by id
                 # response: resp <- obm_repo(...)
@@ -959,9 +1045,10 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
             j <- httr::content(h, "parsed", "application/json")
         }
 
+        return(j)
         if (j$status == "success") {
             # metadata uploded, get PID
-            z <- jsonlite::fromJSON(j$data)
+            #z <- jsonlite::fromJSON(j$data)
             # dataset
             # response can be lightweighted by the request type, e.g.
             # response$data$metadataBlocks$citation$fields[[1]]
@@ -969,14 +1056,39 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
             # Dataset author: response$data$metadataBlocks$citation$fields[[1]]$value[[2]]$authorName$value
             # Dataset author affiliation: response$data$metadataBlocks$citation$fields[[1]]$value[[2]]$authorAffiliation$value
             # Dataset files: response$data$files
-            return( z )
+            return( j$data )
         } else {
             return ( j )
-        }
-    } 
+        } } 
     else if (scope == 'delete') {
 
-        p <- params
+        if (params$type == 'dataverse') {
+            message('Are you sure you want to delete your dataverse?\nYou cannot undelete this dataverse. (Yes | No)')
+
+            answer <- readline(prompt="\n")
+            if (answer != 'Yes') {
+                message("Cancelled\n")
+                return()
+            }
+        }
+        if (params$type == 'datasets') {
+            message('Are you sure you want to delete this dataset and all of its files?\nYou cannot undelete this dataset. (Yes | No)')
+
+            answer <- readline(prompt="\n")
+            if (answer != 'Yes') {
+                message("Cancelled\n")
+                return()
+            }
+        }
+        if (params$type == 'datafile') {
+            message('The file will be deleted after you continue. (Yes | No)')
+
+            answer <- readline(prompt="\n")
+            if (answer != 'Yes') {
+                message("Cancelled\n")
+                return()
+            }
+        }
         params <- rjson::toJSON(params)
 
         h <- httr::POST(pds_url,
@@ -986,6 +1098,39 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         j <- httr::content(h)
 
         return(j)
+    }
+    else if (scope == 'set') {
+
+        if (!is.null(params$REPO)) {
+            OBM$default_repo <- params$REPO
+        }
+        if (!is.null(params$PARENT)) {
+            OBM$parent_dataverse <- params$PARENT
+            params$PARENT_DATAVERSE = params$PARENT
+        }
+
+        api_call <- NULL
+        if (!is.null(params$publish)) {
+            message("Are you sure you want to publish this dataverse?\nOnce you do so it must remain published. (Yes | No)")
+            answer <- readline(prompt="\n")
+            if (answer != 'Yes') {
+                message("Cancelled\n")
+                return()
+            }
+            api_call <- 1
+        }
+
+        if (!is.null(api_call)) {
+            params <- rjson::toJSON(params)
+
+            h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope='use_repo', params=params, method='set'),
+                    encode="form")
+
+            j <- httr::content(h)
+
+            return(j)
+        }
     }
 }
 
