@@ -53,3 +53,15 @@ obm_put(...)
 #### the `last` label points an SQL query which stored on the server. These queries connected with the users. 
 #### The users can create and save custom queries with custom labels.
 obm_get('get_report','last')
+
+### Create datatable using a csv file
+#### creates an sql file which can be used in the obm web interface for creating a new table, or add several new columns to an existing table
+create_table(file='foo.csv',[data=, sep=',' , quote="'", create-table=F, project=F, table='']
+
+### repository function
+#### If the OBM project has a repository connection, the following function will be available
+#### Create dataverse, dataset, add files to dataset
+#### Get info about dataverses, datasets, files
+#### Publish datasets
+#### Delete files, datasets, dataverse
+obm_repo('get|put',params=list())
