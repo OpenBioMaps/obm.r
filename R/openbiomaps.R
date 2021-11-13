@@ -856,7 +856,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                 for (i in 1:length(existing_files)) {
                     if (existing_files[i] == basename(data_file)) {
                         if (dataset_state == 'DRAFT') {
-                            res <- obm_repo('dssssssssssssssxxy2wwwwwwewww3w         ;lete',params=list(type='datafile',id=k$data$files[[1]]$dataFile$id[i]))
+                            res <- obm_repo('get',params=list(type='datafile',id=k$data$files[[1]]$dataFile$id[i]))
                         } else {
                             params$replace_file <- k$data$files[[1]]$dataFile$id[i]
                         }
@@ -1030,8 +1030,10 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                 body=list(access_token=token$access_token, scope='use_repo', params=params, method='get'),
                 encode="form")
 
+        print (h)
+
         j <- try(httr::content(h),silent=T)
-        if (inherits(x, "try-error")) {
+        if (inherits(j, "try-error")) {
             j <- httr::content(h,"text")
         }
         if ( class(j) == 'raw' ) {
