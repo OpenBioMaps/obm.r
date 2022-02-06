@@ -41,19 +41,24 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     # get project
     h <- httr::POST(init_url,body=list(scope='get_project',value='get_project_list'),encode='form')
     if (httr::status_code(h) != 200) {
-        return(paste("http error:",httr::status_code(h) ))
+        return(paste("http error: ",httr::status_code(h) ))
     }
     h.content <- httr::content(h,'text')
     h.json <- jsonlite::fromJSON( h.content )
 
     if (h.json$status=='success') {
 
+        message('Connected to: ',init_url)
         h.cl <- structure(list(data = h.json$data), class = "obm_class")
         if (project=='') {
+            cat("Available project are:\n\n")
             for (i in 1:nrow(h.cl$data)) {
-                print(h.cl$data$project_table[i])
+                cat(h.cl$data$project_table[i]," (",h.cl$data$project_description[i],")\n")
             }
+            cat("\n")
             project <- readline(prompt="Enter project name: ")
+            project <- gsub('(\\w+)\\s+?.*','\\1',project,perl=T)
+
         }
         for (i in 1:nrow(h.cl$data)) {
             if (project == h.cl$data$project_table[i]) {
@@ -68,13 +73,16 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
             print(h.json$data)
         }
     }
+    if (domain == '') {
+        return(paste("Project ",project,"does not exists! Choose a valid project name."))
+    }
 
     protocol <- gsub('(https?)://.*','\\1',domain)
-    server <- gsub('(https?://)(.*)(/projects/)(.*)', '\\2', domain)
+    server <- gsub('(https?://)(.*)(/projects/)?(.*)?', '\\2', domain)
     OBM$server <- server
 
-    OBM$pds_url <- paste(domain,'/v',api_version,'/pds.php',sep='')
-    OBM$token_url <- paste(protocol,'://',server,'/oauth/token.php',sep='')
+    OBM$pds_url <- paste(domain,'v',api_version,'/pds.php',sep='')
+    OBM$token_url <- paste(protocol,'://',server,'oauth/token.php',sep='')
     if (verbose==T) {
         message('PDS url: ',OBM$pds_url)
         message('Token url: ',OBM$token_url)
@@ -91,7 +99,9 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         OBM$scope <- scope
     } else {
         # default scopes
-        OBM$scope <- c('get_form','get_profile','get_data','get_specieslist','get_history','set_rules','get_report','put_data','get_tables','pg_user','use_repo')
+        OBM$scope <- c('get_form','get_profile','get_data','get_specieslist',
+                       'get_history','set_rules','get_report','put_data',
+                       'get_tables','pg_user','use_repo')
     }
 
     # default client_id
@@ -140,7 +150,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         }
     } else {
         if ( username=='' ) {
-            username <- readline(prompt="Enter username: ")
+            username <- readline(prompt="Enter username (email address): ")
         } 
         if ( password=='' ) {
             if (paranoid==T) {
@@ -152,7 +162,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         scope <- paste(scope, collapse = ' ')
         h <- httr::POST(url,body=list(grant_type='password', username=username, password=password, client_id=client_id, scope=scope))
         if (httr::status_code(h)==401) {
-            message('authentication failed!')
+            message('Authentication failed!')
             return(FALSE)
         }
         z <- Sys.time()
@@ -197,11 +207,11 @@ obm_connect <- function (link='',verbose=F) {
 
     h <- httr::POST(OBM$pds_url,body=list(shared_link=link, scope='shared_link'))
     if (httr::status_code(h)==401) {
-        message('authorization failed!')
+        message('Authorization failed!')
         return(FALSE)
     }
     if (httr::status_code(h) != 200) {
-        message("http error:",httr::status_code(h) )
+        message("http error: ",httr::status_code(h) )
         return(FALSE)
     }
 
