@@ -971,20 +971,30 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                 m$ContactEmail <- readline(prompt="Enter contact's email: ")
                 m$Description <- readline(prompt="Enter description: ")
 
+                #s <- list('Agricultural Sciences',
+                #    'Arts and Humanities',
+                #    'Astronomy and Astrophysics',
+                #    'Business and Management',
+                #    'Chemistry',
+                #    'Computer and Information Science',
+                #    'Earth and Environmental Sciences',
+                #    'Engineering',
+                #    'Law',
+                #    'Mathematical Sciences',
+                #    'Medicine, Health and Life Sciences',
+                #    'Physics',
+                #    'Social Sciences',
+                #    'Other')
+                # Shortened list
                 s <- list('Agricultural Sciences',
-                    'Arts and Humanities',
-                    'Astronomy and Astrophysics',
-                    'Business and Management',
                     'Chemistry',
                     'Computer and Information Science',
                     'Earth and Environmental Sciences',
-                    'Engineering',
-                    'Law',
                     'Mathematical Sciences',
                     'Medicine, Health and Life Sciences',
-                    'Physics',
                     'Social Sciences',
                     'Other')
+
 
                 print ( unlist(s) )
                 read <- strsplit(readline(prompt="Enter subjects (e.g. 10 11): "), "\\s", perl=TRUE)
