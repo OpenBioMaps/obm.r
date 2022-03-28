@@ -12,7 +12,7 @@ create_table(
   createtable = FALSE,
   project = FALSE,
   table = NULL,
-  na_value = ""
+  na_values = ""
 )
 }
 \arguments{
@@ -30,11 +30,11 @@ create_table(
 
 \item{table}{the output sql table name}
 
-\item{na_value}{Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".}
+\item{na_values}{Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".}
 }
 \description{
 Create table structure from csv file
-./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_value ...]
+./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_values ...]
 Default for quote is "
 Default for sep is ,
 Default for createtable is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 

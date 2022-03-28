@@ -1,7 +1,7 @@
 #' create_table Function
 #'
 #' Create table structure from csv file
-#' ./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_value ...]
+#' ./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_values ...]
 #' Default for quote is "
 #' Default for sep is ,
 #' Default for createtable is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 
@@ -14,11 +14,11 @@
 #' @param createtable output as CREATE TABLE ... or ALTER TABLE ... ADD COLUMN ...
 #' @param project prefix for table name
 #' @param table the output sql table name
-#' @param na_value Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".
+#' @param na_values Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".
 #' @keywords create sql table structure
 #' @export
 
-create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=FALSE, project=FALSE, table=NULL, na_value="") {
+create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=FALSE, project=FALSE, table=NULL, na_values="") {
     # default values 
     csv.sep <- sep
     csv.quote <- quote
@@ -157,7 +157,7 @@ create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=F
     if (file_type == '.csv') {
         if (!is.null(na_value)) {
             # na_value can be a vector!!
-            csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote, na.strings = na_value)
+            csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote, na.strings = na_values)
         } else {
             csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote)
         }
@@ -289,6 +289,9 @@ analyse <- function(col,cn,counter,na.drop=T) {
                     type <- 'date'
                     return(type)
                 }
+                if (anyNA(isdate) && class(isdate)=='Date') {
+                    print(paste(cn, 'seems to date type, but contains not transformable strings '))
+                }
 
                 print(paste('Unrecognized factor column: ',cn,sep=''))
                 return('text')
@@ -327,6 +330,10 @@ analyse <- function(col,cn,counter,na.drop=T) {
                     type <- 'date'
                     return(type)
                 }
+                if (anyNA(isdate) && class(isdate)=='Date') {
+                    print(paste(cn, 'seems to date type, but contains not transformable strings '))
+                }
+
                 type <- paste('character varying(',col.length,')',sep='')
                 return(type)
             } else {
@@ -358,6 +365,10 @@ analyse <- function(col,cn,counter,na.drop=T) {
             if (!anyNA(isdate) && class(isdate)=='Date') {
                 type <- 'date'
                 return(type)
+            } 
+
+            if (anyNA(isdate) && class(isdate)=='Date') {
+                print(paste(cn, 'seems to date type, but contains not transformable strings '))
             }
 
             type <- paste('character varying(',col.length,')',sep='')
