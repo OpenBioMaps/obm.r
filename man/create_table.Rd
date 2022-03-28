@@ -11,7 +11,8 @@ create_table(
   quote = "'",
   createtable = FALSE,
   project = FALSE,
-  table = NULL
+  table = NULL,
+  na_value = ""
 )
 }
 \arguments{
@@ -28,15 +29,19 @@ create_table(
 \item{project}{prefix for table name}
 
 \item{table}{the output sql table name}
+
+\item{na_value}{Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".}
 }
 \description{
-Create table from csv
-./create_table_from_csv.R --file foo.csv [--sep , --quote \' --create-table --project ... --table ... ]
+Create table structure from csv file
+./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_value ...]
 Default for quote is "
 Default for sep is ,
-Default for create-table is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 
+Default for createtable is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 
 No default for project. If set, table name will be prefixed with this value
 Default table is the basename of the csv file.
 }
 \keyword{create}
+\keyword{sql}
+\keyword{structure}
 \keyword{table}

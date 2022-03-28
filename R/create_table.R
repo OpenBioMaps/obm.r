@@ -1,10 +1,10 @@
 #' create_table Function
 #'
-#' Create table from csv
-#' ./create_table_from_csv.R --file foo.csv [--sep , --quote \' --create-table --project ... --table ... ]
+#' Create table structure from csv file
+#' ./create_table_from_csv.R --file foo.csv [--sep , --quote \' --createtable --project ... --table ... --na_value ...]
 #' Default for quote is "
 #' Default for sep is ,
-#' Default for create-table is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 
+#' Default for createtable is FALSE. If TRUE, SQL output will be CREATE TABLE... instead of ALTER TABLE... 
 #' No default for project. If set, table name will be prefixed with this value
 #' Default table is the basename of the csv file.
 #' @param file csv file for processing
@@ -14,10 +14,11 @@
 #' @param createtable output as CREATE TABLE ... or ALTER TABLE ... ADD COLUMN ...
 #' @param project prefix for table name
 #' @param table the output sql table name
-#' @keywords create table
+#' @param na_value Ommitted na values in type analises. na_value can be a vector or a single value as well. Default is empty the cell "".
+#' @keywords create sql table structure
 #' @export
 
-create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=FALSE, project=FALSE, table=NULL) {
+create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=FALSE, project=FALSE, table=NULL, na_value="") {
     # default values 
     csv.sep <- sep
     csv.quote <- quote
@@ -29,17 +30,18 @@ create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=F
     if ( !is.null(csv.file) ) {
         file_type <- getExtension(csv.file)
         table_name <- mapply(gsub,file_type,"",csv.file)
+        if (!is.null(table_name)) {
+            table_name <- table
+        }
         output_file <- paste(table_name,".sql",sep='')
-    } 
-    else if ( !is.null(data) ) {
+    } else if ( !is.null(data) ) {
         file_type <- NULL
         table_name <- table
         output_file <- paste(table_name,".sql",sep='')
-    
     }
 
     # RUN
-    if (project != '') {
+    if ( !is.null(project) ) {
         db <- project # set projecttable
         dbtable <- paste(project,tolower(table_name),sep='_')
     } else {
@@ -153,10 +155,15 @@ create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=F
     }
 
     if (file_type == '.csv') {
-        csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote)
+        if (!is.null(na_value)) {
+            # na_value can be a vector!!
+            csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote, na.strings = na_value)
+        } else {
+            csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote)
+        }
     } else if (file_type == '.xls' || file_type == '.xlsx') {
         #csv.data <- xlsx::read.xlsx(csv.file, sheetIndex = 1)
-        return ("Processing xlsx file not supported here due to the complicated dependencies of xlsx package")
+        return ("Processing xlsx files is not supported any more due to the complicated dependencies of xlsx package")
     } else if ( is.null(file_type) && !is.null(data)) {
         csv.data <- data
     } else {
@@ -204,6 +211,11 @@ getExtension <- function(file){
 analyse <- function(col,cn,counter,na.drop=T) {
     type <- class( col )
     flev <- length(levels(as.factor(col)))
+
+
+    # replace na_value to NULL
+
+
 
     if (type == 'integer') {
         if (min(col,na.rm=T) == 0 && max(col,na.rm=T)==1) {
@@ -263,10 +275,10 @@ analyse <- function(col,cn,counter,na.drop=T) {
 
                 # is not numeric, might be date
                 isdate <- tryCatch({
-                    isdate <- try(as.Date(col),silent=T)
-                    if (!anyNA(isdate)){
-                         isdate <- try(as.Date(col,format='%Y.%m.%d',silent=T))
-                    }
+                    isdate <- try(as.Date(na.exclude(col)),silent=T)
+                    #if (!anyNA(isdate)){
+                    #     isdate <- try(as.Date(col,format='%Y.%m.%d',silent=T))
+                    #}
                 }, warning = function(w) {
                     return(NA)
                 }, error = function(e){
@@ -298,13 +310,13 @@ analyse <- function(col,cn,counter,na.drop=T) {
 
             })
 
-            if (col.length<=255) {
+            if (col.length<100) {
                 # might be date
                 isdate <- tryCatch({
-                    isdate <- try(as.Date(col),silent=T)
-                    if (!anyNA(isdate)){
-                         isdate <- try(as.Date(col,format='%Y.%m.%d',silent=T))
-                    }
+                    isdate <- try(as.Date(na.exclude(col)),silent=T)
+                    #if (!anyNA(isdate)){
+                    #     isdate <- try(as.Date(col,format='%Y.%m.%d',silent=T))
+                    #}
                 }, warning = function(w) {
                     return(NA)
                 }, error = function(e){
@@ -328,8 +340,30 @@ analyse <- function(col,cn,counter,na.drop=T) {
         }, error = function(err) {
             print(paste('STRING conversion error: ',err))
             return(256)
-        }) 
-        type <- paste('character varying(',col.length,')',sep='')
+        })
+        if (col.length < 100) {
+
+            # might be date??
+            isdate <- tryCatch({
+                isdate <- try(as.Date(na.exclude(col)),silent=T)
+                #if (!anyNA(isdate)){
+                #     isdate <- try(as.Date(as.matrix(col),format='%Y.%m.%d',silent=T))
+                #}
+            }, warning = function(w) {
+                return(NA)
+            }, error = function(e){
+                return(NA)
+            })
+
+            if (!anyNA(isdate) && class(isdate)=='Date') {
+                type <- 'date'
+                return(type)
+            }
+
+            type <- paste('character varying(',col.length,')',sep='')
+        } else {
+            type <- 'text'
+        }
         return(type)
     }
     return(type)
