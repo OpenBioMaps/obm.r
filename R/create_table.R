@@ -155,8 +155,8 @@ create_table <- function(file=NULL, data=NULL, sep=',', quote="'", createtable=F
     }
 
     if (file_type == '.csv') {
-        if (!is.null(na_value)) {
-            # na_value can be a vector!!
+        if (!is.null(na_values)) {
+            # na_values can be a vector!!
             csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote, na.strings = na_values)
         } else {
             csv.data <- read.csv2(csv.file, header=T, sep=csv.sep, quote=csv.quote)
@@ -213,7 +213,7 @@ analyse <- function(col,cn,counter,na.drop=T) {
     flev <- length(levels(as.factor(col)))
 
 
-    # replace na_value to NULL
+    # replace na_values to NULL
 
 
 
