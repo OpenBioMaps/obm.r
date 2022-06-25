@@ -58,6 +58,10 @@ obm_get('get_report','last')
 #### creates an sql file which can be used in the obm web interface for creating a new table, or add several new columns to an existing table
 create_table(file='foo.csv',[data=, sep=',' , quote="'", create-table=F, project=F, table='']
 
+Example:
+
+create_table(file='database_example_rows.csv',quote='"',table='butterfly')
+
 ### repository function
 #### If the OBM project has a repository connection, the following function will be available
 #### Create dataverse, dataset, add files to dataset
