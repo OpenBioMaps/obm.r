@@ -453,7 +453,8 @@ as.data.frame.obm_class <- function(x) {
 #'   #colnames(data)<-c("species","nume","place","no",'Attach')
 #'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 #'
-obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
+obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',
+                     soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
     if ( is.null(scope) ) {
         return ("usage: obm_get(scope...)")
     }
@@ -1170,4 +1171,103 @@ repo_summary <- function(x=NULL) {
     return(r)
 }
 
+#' Computation Function
+#'
+#' This function allows you to get data from an OpenBioMaps server.
+#' @param action post, get-results, get-status 
+#' @param params computation control params 
+#' @param data_file data file sending for computation
+#' @param token obm_init() provide it
+#' @param url obm_init() provide it
+#' @keywords computation
+#' @export
+#' @examples
+#' Manage computational packs
+#' results <- obm_computation('post','afile.R',params->c())
+obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file=NULL,params=NULL) {
+    if (action=='') {
+        return ("usage: obm_computation(action, params=...)")
+    }
+    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+        # auto refresh token 
+        z <- Sys.time()
+        timestamp <- unclass(z)
+        e <- OBM$time + OBM$token$expires_in
+        if (length(e) && e < timestamp) {
+            # expired
+            obm_refresh_token()
+        }
+    }
+
+    params <- rjson::toJSON(params)
+    
+    if (action == 'post') {
+        # Whatinstall("r-api") if there are multiple files??
+        #for ( i in data_file ) {
+        #}
+            h <- httr::POST(pds_url,
+                    body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(i)),
+                    encode="multipart")
+            
+            if (httr::status_code(h) != 200) {
+                return(paste("http error:",httr::status_code(h),h ))
+            }
+            
+            j <- httr::content(h, "parsed", "application/json")
+            
+            if (j$status == "success") {
+                # Response array:
+                # Computation ID, Remote server, ...
+                z <- j$data
+            } else {
+                return( j )
+            }
+    } else if (action == 'get-status') {
+
+        h <- httr::POST(url,
+                        body=list(access_token=token$access_token, scope='computation', method='get-status', params=params),
+                        encode='form')
+        if (httr::status_code(h) != 200) {
+            if (httr::status_code(h) == 403) {
+                message( "Resource access denied" )
+            } 
+            else if (httr::status_code(h) == 500) {
+                message( "Server error" )
+            }
+        } else {
+            j <- httr::content(h, "parsed", "application/json")
+            
+            if (j$status == "success") {
+                # Response array:
+                # Computation ID, Remote server, ...
+                z <- j$data
+            } else {
+                return( j )
+            }
+        }
+    } else if (action == 'get-results') {
+
+        h <- httr::POST(url,
+                        body=list(access_token=token$access_token, scope='computation', method='get-results', params=params),
+                        encode='form')
+        if (httr::status_code(h) != 200) {
+            if (httr::status_code(h) == 403) {
+                message( "Resource access denied" )
+            } 
+            else if (httr::status_code(h) == 500) {
+                message( "Server error" )
+            }
+        } else {
+            j <- httr::content(h, "parsed", "application/json")
+            
+            if (j$status == "success") {
+                # Response array:
+                # Computation ID, Remote server, ...
+                z <- j$data
+            } else {
+                return( j )
+            }
+        }
+    }
+}
 

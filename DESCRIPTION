@@ -1,8 +1,8 @@
 Package: obm
-Title: Simplified OpenBioMaps API interface for R
-Version: 1.4
+Title: OpenBioMaps API interface for R
+Version: 1.5
 Authors@R: person("Miklós", "Bán", email = "banm@vocs.unideb.hu", role = c("aut", "cre"))
-Description: simplified OAuth2 based api interface for R users to work with data in postgresql database retreive all or selection of data into data.frame and more....
+Description: OAuth2 based API interface for R users to work with data in postgresql database retreive all or selection of data into data.frame and more....
 Depends: R (>= 3.1.0)
 License: GPL3
 LazyData: true
