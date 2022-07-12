@@ -1205,7 +1205,7 @@ obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file
         # Whatinstall("r-api") if there are multiple files??
         #for ( i in data_file ) {
         #}
-            h <- httr::POST(pds_url,
+            h <- httr::POST(url,
                     body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(i)),
                     encode="multipart")
             
