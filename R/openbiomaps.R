@@ -1268,6 +1268,8 @@ obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file
                 return( j )
             }
         }
+    } else {
+        message( "Action should be either: post, get-results or get-status")
     }
 }
 
