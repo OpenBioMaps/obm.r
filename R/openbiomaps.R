@@ -101,7 +101,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         # default scopes
         OBM$scope <- c('get_form','get_profile','get_data','get_specieslist',
                        'get_history','set_rules','get_report','put_data',
-                       'get_tables','pg_user','use_repo')
+                       'get_tables','pg_user','use_repo','computation')
     }
 
     # default client_id
@@ -1206,7 +1206,7 @@ obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file
         #for ( i in data_file ) {
         #}
             h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(i)),
+                    body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(data_file)),
                     encode="multipart")
             
             if (httr::status_code(h) != 200) {
