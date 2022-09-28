@@ -78,7 +78,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     }
 
     protocol <- gsub('(https?)://.*','\\1',domain)
-    server <- gsub('(https?://)(.*)(/projects/)?(.*)?', '\\2', domain)
+    server <- gsub('(https?://)([^/]*)(/projects/)?(.*)?', '\\2', domain)
     OBM$server <- server
 
     OBM$pds_url <- paste(domain,'v',api_version,'/pds.php',sep='')
