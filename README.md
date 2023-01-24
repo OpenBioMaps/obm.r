@@ -1,6 +1,8 @@
 # obm.r
 R package for connecting and retreive data from OpenBioMaps servers
 
+For shiny data exploration, see the OBM Insight R-Shiny app: http://computation.openbiomaps.org
+
 ## install from github
 
 library("devtools")
