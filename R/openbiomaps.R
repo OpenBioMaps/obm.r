@@ -78,11 +78,11 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     }
 
     protocol <- gsub('(https?)://.*','\\1',domain)
-    server <- gsub('(https?://)(.*)(/projects/)?(.*)?', '\\2', domain)
+    server <- gsub('(https?://)([^/]*)(/projects/)?(.*)?', '\\2', domain)
     OBM$server <- server
 
     OBM$pds_url <- paste(domain,'v',api_version,'/pds.php',sep='')
-    OBM$token_url <- paste(protocol,'://',server,'oauth/token.php',sep='')
+    OBM$token_url <- paste(protocol,'://',server,'/oauth/token.php',sep='')
     if (verbose==T) {
         message('PDS url: ',OBM$pds_url)
         message('Token url: ',OBM$token_url)

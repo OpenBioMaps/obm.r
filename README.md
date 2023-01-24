@@ -35,7 +35,7 @@ data <- obm_get('get_data','*')
 data <- obm_get('get_data','*',table='buildings')
 
 ### query data based on column filter. Returns obm_class
-data <- obm_get('get_data','species=Parus palustris')
+data <- obm_get('get_data','filter=species=Parus palustris')
 
 ### get avilable forms 
 form_list <- obm_get('get_form_list')
