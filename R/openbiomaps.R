@@ -1176,7 +1176,8 @@ repo_summary <- function(x=NULL) {
 #' This function allows you to get data from an OpenBioMaps server.
 #' @param action post, get-results, get-status 
 #' @param params computation control params 
-#' @param data_file data file sending for computation
+#' @param data_files list of files to sending
+#' @param config_file is The computation_conf.yml file
 #' @param token obm_init() provide it
 #' @param url obm_init() provide it
 #' @keywords computation
@@ -1184,7 +1185,8 @@ repo_summary <- function(x=NULL) {
 #' @examples
 #' Manage computational packs
 #' results <- obm_computation('post','afile.R',params->c())
-obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file=NULL,params=NULL) {
+obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_files=NULL, params=NULL, config_file=NULL) {
+
     if (action=='') {
         return ("usage: obm_computation(action, params=...)")
     }
@@ -1202,11 +1204,22 @@ obm_computation <- function (action='',token=OBM$token,url=OBM$pds_url,data_file
     params <- rjson::toJSON(params)
     
     if (action == 'post') {
-        # Whatinstall("r-api") if there are multiple files??
-        #for ( i in data_file ) {
-        #}
+
+        if (dir.exists(data_files)) {
+            files2zip <- dir(data_files, full.names = TRUE)
+            zip(zipfile = 'scripts.zip', files = files2zip)
+            data_files <- 'scripts.zip'
+        }
+        
+        if (typeof(data_files)=='list') {
+            #for ( i in data_files ) {
+            #}
+            zip("scripts.zip", data_files)
+            data_files <- 'scripts.zip'
+        }
+
             h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(data_file)),
+                    body=list(access_token=token$access_token, scope='computation', params=params, method='post', data_files=httr::upload_file(data_files), config_file=httr::upload_file(config_file)),
                     encode="multipart")
             
             if (httr::status_code(h) != 200) {

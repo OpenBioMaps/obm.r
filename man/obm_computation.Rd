@@ -8,8 +8,9 @@ obm_computation(
   action = "",
   token = OBM$token,
   url = OBM$pds_url,
-  data_file = NULL,
-  params = NULL
+  data_files = NULL,
+  params = NULL,
+  config_file = NULL
 )
 }
 \arguments{
@@ -19,9 +20,11 @@ obm_computation(
 
 \item{url}{obm_init() provide it}
 
-\item{data_file}{data file sending for computation}
+\item{data_files}{list of files to sending}
 
 \item{params}{computation control params}
+
+\item{config_file}{is The computation_conf.yml file}
 }
 \description{
 This function allows you to get data from an OpenBioMaps server.
