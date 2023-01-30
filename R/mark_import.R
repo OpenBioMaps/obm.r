@@ -214,7 +214,8 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
     write("",file="errors.txt",append=F)
 
     # 1. Collect dates
-    unique_dates <- sort(as.Date(unique(data[,date_col]), format = "%d/%m/%Y"))
+    #unique_dates <- sort(as.Date(unique(data[,date_col]), format = "%d/%m/%Y"))
+    unique_dates = sort(unique(as.Date(data[,date_col])))
 
     # 2. Collect individual ids
     unique_id    <- sort(as.integer(unique(data[,id_col])))
@@ -296,13 +297,12 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
         for (i in 1:length(unique_id)){
             control_data <- data[data[,id_col] == unique_id[i],]
             for (j in 1:length(unique_dates)) {
-                if (sum(as.Date(control_data[,date_col], format = "%d/%m/%Y") == unique_dates[j]) > 0) {
+                if (sum(as.Date(control_data[,date_col]) == unique_dates[j], na.rm = TRUE) > 0) {
                     output.df[i, j] = 1
                 }
             }
         }
-    }
-
+    #}
     # Mark kódolás megcsinálása
     for (i in 1:nrow(output.df)) {
         output.df$mark_code[i] <- 0
@@ -320,7 +320,6 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
         }
     }
 
-
     # Add original id columns
     for(i in 1:length(unique_id)) {
         output.df$original_id[i] = unique_id[i]
@@ -329,7 +328,7 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
     results[[paste0(s, "_results")]] = output.df
     # Lista _input tagjait kell kiírtani .inp file-ba
     results[[paste0(s, "_input")]] = output.df$mark_code
-    
+    }
     if (write_output_files) {
         # Outputok kimentése
         for (i in names(results)) {
