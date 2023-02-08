@@ -73,4 +73,18 @@ create_table(file='database_example_rows.csv',quote='"',table='butterfly')
 obm_repo('get|put',params=list())
 
 ### Capture-recapture data processing
+library(obm)
 
+mark_transform(file='Urhanya2017.csv')
+
+...answer questions...
+
+look for output files in you working folder:
+```
+-rw-r--r-- 1 banm banm 1157626 febr   8 19.11 Urhanya2017.csv
+-rw-r--r-- 1 banm banm   16733 febr   8 19.15 errors.txt
+-rw-r--r-- 1 banm banm   90986 febr   8 19.15 nau_results.csv
+-rw-r--r-- 1 banm banm   29187 febr   8 19.15 nau_input.inp
+-rw-r--r-- 1 banm banm   80159 febr   8 19.15 tel_results.csv
+-rw-r--r-- 1 banm banm   25645 febr   8 19.15 tel_input.inp
+```
