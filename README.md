@@ -71,3 +71,6 @@ create_table(file='database_example_rows.csv',quote='"',table='butterfly')
 #### Publish datasets
 #### Delete files, datasets, dataverse
 obm_repo('get|put',params=list())
+
+### Capture-recapture data processing
+
