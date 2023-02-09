@@ -235,15 +235,17 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
         sex_col_levels <- c('sex')
     } else {
         control_cols <- c(control_cols,sex_col)
-        sex_col_levels <- levels(sex_col)
-        if (length(levels(sex_col)) > 2) {
-            print(paste0("There are more two levels of sex: ", paste(levels(sex), collapse=", ")))
+        sex_col_levels <- unique(data[,sex_col])
+        # Remove null-level from sex
+        sex_col_levels = sex_col_levels[!grepl("^null$", sex_col_levels, ignore.case = T)]
+        if (length(sex_col_levels) > 2) {
+            print(paste0("There are more two levels of sex: ", paste(sex_col_levels, collapse=", ")))
         }
         for (i in sex_col_levels) {
-            if (grepl("^(f|n)", sex_col_levels[i], ignore.case = T)) {
-                female <- sex_col_levels[i]
-            } else if (grepl("^(m|h)", sex_col_levels[i], ignore.case = T)) {
-                male <- sex_col_levels[i]
+            if (grepl("^(f|n)", i, ignore.case = T)) {
+                female <- i
+            } else if (grepl("^(m|h)", i, ignore.case = T)) {
+                male <- i
             }
         }
     }
@@ -304,26 +306,37 @@ x_mark_transform <- function(data,id_col,date_col,species_name_col=NULL,sex_col=
         }
     #}
     # Mark kódolás megcsinálása
+    null_row = NULL
     for (i in 1:nrow(output.df)) {
         output.df$mark_code[i] <- 0
         control_data = data[data[,id_col] == unique_id[i],]
-       
         if (length(sex_col_levels) == 2 ) {
             if (sum(control_data[,sex_col] == female) > sum(control_data[,sex_col] == male)) {
                 output.df$mark_code[i] = paste(paste(output.df[i,-ncol(output.df)], collapse = ""), " ", " ", 0, " ", 1, ";", sep = "")
             }
-            else {
+            else if (sum(control_data[,sex_col] == male) > sum(control_data[,sex_col] == female)) {
                 output.df$mark_code[i] = paste(paste(output.df[i,-ncol(output.df)], collapse = ""), " ", " ", 1, " ", 0, ";", sep = "")
             }
-        } else {
-            output.df$mark_code[i] = paste(paste(output.df[i,-ncol(output.df)], collapse = ""), ";", sep = "")
-        }
+            else if(is.null(null_row)){
+              null_row[1] = i
+            }
+            else{
+              null_row[length(null_row)+1] = i
+            }
+        } #else {
+          #  output.df$mark_code[i] = paste(paste(output.df[i,-ncol(output.df)], collapse = ""), ";", sep = "")
+        #}
     }
-
+    
+    # Remove rows where sex == NULL
+    if(!is.null(null_row)){
+      output.df = output.df[-null_row,]
+    }
+    
     # Add original id columns
-    for(i in 1:length(unique_id)) {
-        output.df$original_id[i] = unique_id[i]
-    }
+    #for(i in 1:length(unique_id)) {
+    #    output.df$original_id[i] = unique_id[i]
+    #}
     # _results tagok az ellenőrzést segítő táblák, mehetnek csv-be
     results[[paste0(s, "_results")]] = output.df
     # Lista _input tagjait kell kiírtani .inp file-ba
