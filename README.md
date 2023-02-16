@@ -51,6 +51,11 @@ obm_form_fill(form_data)
 ### upload data
 obm_put(...)
 
+#### upload tracklog recorded with the mobile app
+trl <- '{"trackLogId":"...","trackLogArray":[{...}], ... }'
+res <- obm_put(scope="tracklog", tracklog=trl)
+
+
 ### perform stored query
 #### the `last` label points an SQL query which stored on the server. These queries connected with the users. 
 #### The users can create and save custom queries with custom labels.
