@@ -82,7 +82,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     OBM$server <- server
 
     OBM$pds_url <- paste(domain,'v',api_version,'/pds.php',sep='')
-    OBM$token_url <- paste(protocol,'://',server,'/oauth/token.php',sep='')
+    OBM$token_url <- paste(domain,'oauth/token.php',sep='')
     if (verbose==T) {
         message('PDS url: ',OBM$pds_url)
         message('Token url: ',OBM$token_url)
@@ -160,7 +160,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             }
         }
         scope <- paste(scope, collapse = ' ')
-        h <- httr::POST(url,body=list(grant_type='password', username=username, password=password, client_id=client_id, scope=scope))
+        h <- httr::POST(url,body=list(grant_type='password', remember_me=TRUE, username=username, password=password, client_id=client_id, scope=scope))
         if (httr::status_code(h)==401) {
             message('Authentication failed!')
             return(FALSE)
