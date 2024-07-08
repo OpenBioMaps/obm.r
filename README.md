@@ -1,6 +1,8 @@
 # obm.r
 R package for connecting and retreive data from OpenBioMaps servers
 
+For shiny data exploration, see the OBM Insight R-Shiny app: http://computation.openbiomaps.org
+
 ## install from github
 
 library("devtools")
@@ -49,6 +51,11 @@ obm_form_fill(form_data)
 ### upload data
 obm_put(...)
 
+#### upload tracklog recorded with the mobile app
+trl <- '{"trackLogId":"...","trackLogArray":[{...}], ... }'
+res <- obm_put(scope="tracklog", tracklog=trl)
+
+
 ### perform stored query
 #### the `last` label points an SQL query which stored on the server. These queries connected with the users. 
 #### The users can create and save custom queries with custom labels.
@@ -69,3 +76,20 @@ create_table(file='database_example_rows.csv',quote='"',table='butterfly')
 #### Publish datasets
 #### Delete files, datasets, dataverse
 obm_repo('get|put',params=list())
+
+### Capture-recapture data processing
+library(obm)
+
+mark_transform(file='Urhanya2017.csv')
+
+...answer questions...
+
+look for output files in you working folder:
+```
+-rw-r--r-- 1 banm banm 1157626 febr   8 19.11 Urhanya2017.csv
+-rw-r--r-- 1 banm banm   16733 febr   8 19.15 errors.txt
+-rw-r--r-- 1 banm banm   90986 febr   8 19.15 nau_results.csv
+-rw-r--r-- 1 banm banm   29187 febr   8 19.15 nau_input.inp
+-rw-r--r-- 1 banm banm   80159 febr   8 19.15 tel_results.csv
+-rw-r--r-- 1 banm banm   25645 febr   8 19.15 tel_input.inp
+```

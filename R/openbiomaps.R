@@ -101,7 +101,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         # default scopes
         OBM$scope <- c('get_form','get_profile','get_data','get_specieslist',
                        'get_history','set_rules','get_report','put_data',
-                       'get_tables','pg_user','use_repo','computation')
+                       'get_tables','pg_user','use_repo','computation','tracklog')
     }
 
     # default client_id
@@ -454,7 +454,7 @@ as.data.frame.obm_class <- function(x) {
 #'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 #'
 obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',
-                     soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
+                     soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project, tracklog=NULL) {
     if ( is.null(scope) ) {
         return ("usage: obm_get(scope...)")
     }
@@ -549,6 +549,16 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
                     body=list(access_token=token$access_token, scope=scope, table=data_table, form_id=form_id, header=form_header, data=form_data),
                     encode="form")
     
+    } else if (!is.null(tracklog)) {
+        h <- httr::POST(
+                        pds_url,
+                        body=list(
+                                  access_token=token$access_token, 
+                                  scope='tracklog', 
+                                  value=tracklog), 
+                        encode="form"
+        )
+
     } else {
 
         form_data <- jsonlite::toJSON(form_data)
