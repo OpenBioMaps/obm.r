@@ -257,7 +257,8 @@ get_password <- function() {
 #'
 #' This function allows you to get data from an OpenBioMaps server.
 #' @param scope Which scope? e.g. get_data 
-#' @param condition A text condition based on column in your table
+#' @param condition list - A condition based on column in your table, mostly key value pairs obm_get('get_data',condition = list(species = 'Parus palustris'))
+#' @param control_condition An SQL control condition, e.g. limit=10:1
 #' @param token obm_init() provide it
 #' @param url obm_init() provide it
 #' @param table optional table from project
@@ -265,9 +266,11 @@ get_password <- function() {
 #' @export
 #' @examples
 #' get data rows from the main table from 39980 to 39988
-#' data <- obm_get('get_data','39980:39988')
+#' data <- obm_get('get_data',condition=list(obm_id = '39980:39988')
 #' get rows from the main table where column 'species' is 'Parus palustris'
-#' data <- obm_get('get_data','species=Parus palustris')
+#' data <- obm_get('get_data',condition=list(species = 'Parus palustris')
+#' get 100 rows only from filtered query
+#' data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris')
 #' get all data from the default/main table
 #' data <- obm_get('get_data','*')
 #' get data from a non-default table
@@ -282,7 +285,7 @@ get_password <- function() {
 #' get list of available tables in the project
 #' obm_get('get_tables')
 
-obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,table=OBM$project) {
+obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$token,url=OBM$pds_url,table=OBM$project) {
     if (scope=='') {
         return ("usage: obm_get(scope,...)")
     }
@@ -303,9 +306,20 @@ obm_get <- function (scope='',condition=NULL,token=OBM$token,url=OBM$pds_url,tab
     if (scope == 'get_form_data') {
         scope = 'get_form'
     }
+    if (is.list(condition)) {
+        condition <- jsonlite::toJSON(condition, auto_unbox = TRUE)
+        if (is.null(control_condition) || control_condition == '') {
+            control_condition <- 'filter'
+        } else {
+            control_condition <- paste0(control_condition, '^filter')
+        }
+    } else {
+            condition <- NULL
+    }
 
+    # -d 'value=filter^limit=3:1' -d 'filters={"terepi_nev":"keleti sün"}
     h <- httr::POST(url,
-                    body=list(access_token=token$access_token, scope=scope, value=condition, table=table, shared_link=OBM$shared_link),
+                    body=list(access_token=token$access_token, scope=scope, value=control_condition, filters=condition, table=table, shared_link=OBM$shared_link),
                     encode='form')
     if (httr::status_code(h) != 200) {
         if (httr::status_code(h) == 403) {

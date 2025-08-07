@@ -6,6 +6,7 @@
 \usage{
 obm_get(
   scope = "",
+  control_condition = NULL,
   condition = NULL,
   token = OBM$token,
   url = OBM$pds_url,
@@ -15,7 +16,9 @@ obm_get(
 \arguments{
 \item{scope}{Which scope? e.g. get_data}
 
-\item{condition}{A text condition based on column in your table}
+\item{control_condition}{An SQL control condition, e.g. limit=10:1}
+
+\item{condition}{list - A condition based on column in your table, mostly key value pairs obm_get('get_data',condition = list(species = 'Parus palustris'))}
 
 \item{token}{obm_init() provide it}
 
@@ -28,9 +31,11 @@ This function allows you to get data from an OpenBioMaps server.
 }
 \examples{
 get data rows from the main table from 39980 to 39988
-data <- obm_get('get_data','39980:39988')
+data <- obm_get('get_data',condition=list(obm_id = '39980:39988')
 get rows from the main table where column 'species' is 'Parus palustris'
-data <- obm_get('get_data','species=Parus palustris')
+data <- obm_get('get_data',condition=list(species = 'Parus palustris')
+get 100 rows only from filtered query
+data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris')
 get all data from the default/main table
 data <- obm_get('get_data','*')
 get data from a non-default table
