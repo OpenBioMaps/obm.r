@@ -325,6 +325,15 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
         if (httr::status_code(h) == 403) {
             message( "Resource access denied" )
         } 
+        else if (httr::status_code(h) == 202) {
+            message( "Processing failed" )
+        } 
+        else if (httr::status_code(h) == 204) {
+            message( "No data return" )
+        } 
+        else if (httr::status_code(h) == 400) {
+            message( "Error" )
+        } 
         else if (httr::status_code(h) == 500) {
             message( "Server error" )
         }
