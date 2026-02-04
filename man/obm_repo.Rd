@@ -25,13 +25,13 @@ This function allows put data into a repozitorium.
 Getting server conf
      obm_repo('get',params=list(server_conf=1))
 
-Set the default server/project-repo for each of the following operations 
+Set the default server/project-repo for each of the following operations
    - default is 0
    - set possible id's from server_conf query above
      obm_repo('set',params=list(REPO=x))
      obm_repo('set',params=list(REPO=x, PARENT=xxx))
 
-Listing dataverse      
+Listing dataverse
      obm_repo('get',params=list(type='dataverse',contents=1))
      obm_repo('get',params=list(type='dataverse'))
 

@@ -14,24 +14,34 @@ obm_get(
 )
 }
 \arguments{
-\item{scope}{Which scope? e.g. get_data}
+\item{scope}{Which scope? e.g. get_data, get_form_list, get_tables}
 
-\item{control_condition}{An SQL control condition, e.g. limit=10:1}
+\item{control_condition}{Control condition.
+- In API v2: SQL-like, e.g., 'limit=10:1'
+- In API v3: 'limit=LIMIT:OFFSET' format}
 
-\item{condition}{list - A condition based on column in your table, mostly key value pairs obm_get('get_data',condition = list(species = 'Parus palustris'))}
+\item{condition}{list - A condition based on column in your table.
+- In API v2: Mostly key-value pairs, e.g., list(species = 'Parus palustris')
+- In API v3 (GraphQL): Can include operators like `iequals`, `AND`, `OR`, and special keys:
+  - `fields`: vector of columns to return
+  - `schema`: database schema (defaults to 'public')
+  - `table`: database table (defaults to project name)}
 
 \item{token}{obm_init() provide it}
 
 \item{url}{obm_init() provide it}
 
-\item{table}{optional table from project}
+\item{table}{optional table from project (fallback if not in condition list)}
 }
 \description{
 This function allows you to get data from an OpenBioMaps server.
+For API v3 (api_version >= 3.0), 'get_data' uses GraphQL for powerful filtering and data selection.
+See the [GraphQL User Guide](https://gitlab.com/openbiomaps/api/obm-project-api/-/blob/main/GraphQLUserGuide.md) for more details on query possibilities.
 }
 \examples{
-get data rows from the main table from 39980 to 39988
-data <- obm_get('get_data',condition=list(obm_id = '39980:39988')
+# --- API v2 Examples ---
+# get data rows from the main table from 39980 to 39988
+# data <- obm_get('get_data',condition=list(obm_id = '39980:39988'))
 get rows from the main table where column 'species' is 'Parus palustris'
 data <- obm_get('get_data',condition=list(species = 'Parus palustris')
 get 100 rows only from filtered query
@@ -41,13 +51,29 @@ data <- obm_get('get_data','*')
 get data from a non-default table
 obm_get('get_data','*',table='additional_data')
 
-get list of available forms
-data <- obm_get('get_form_list')
-get data of a form
-data <- obm_get('get_form_data',73)
-perform strored query 'last' is a custom label
-obm_get('get_report','last')
-get list of available tables in the project
-obm_get('get_tables')
+# --- API v3 GraphQL Examples ---
+# get rows where column 'species' is 'Parus palustris' (case-insensitive)
+# data <- obm_get('get_data', condition=list(species = list(iequals = 'Parus palustris')))
+
+# get specific fields from a specific table and schema
+# data <- obm_get('get_data',
+#                condition=list(
+#                  schema = "public",
+#                  table = "dead_animals",
+#                  fields = c("obm_id", "faj", "hely"),
+#                  faj = list(iequals = "asio otus")
+#                ))
+
+# get 100 rows with offset 0
+# data <- obm_get('get_data', 'limit=100:0')
+
+# get list of available forms
+# data <- obm_get('get_form_list')
+
+# get list of available tables in the project
+# obm_get('get_tables')
+
+# get table details (columns) in v3
+# obm_get('get_tables', condition=list(schema="public", table="dead_animals"))
 }
 \keyword{get}

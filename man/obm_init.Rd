@@ -21,15 +21,17 @@ obm_init(
 
 \item{verbose}{print some messages}
 
-\item{api_version}{API version}
+\item{api_version}{API version. 3.0 or higher enables the new REST and GraphQL API.}
 }
 \description{
 This function is initiating an OBM connection.
 }
 \examples{
-connect to a database on the default server (openbiomaps.org)
+# connect to a database on the default server (openbiomaps.org) with API v2
 obm_init(project='dead_animals')
-connect on the local server intance to the butterfly database project
+# connect with API v3 to the dead_animals project
+obm_init(project='dead_animals', api_version=3.0)
+# connect on the local server instance to the butterfly database project
 obm_init('http://localhost/biomaps','butterflies')
 }
 \keyword{init}

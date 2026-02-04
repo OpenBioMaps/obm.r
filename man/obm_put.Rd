@@ -19,28 +19,32 @@ obm_put(
 )
 }
 \arguments{
-\item{scope}{currently put_data supported}
+\item{scope}{currently put_data supported. For v3, 'tracklog' can also be used here or via the tracklog parameter.}
 
 \item{form_header}{database column names vector, if missing default is the full list from the form}
 
-\item{data_file}{a csv file with header row}
+\item{data_file}{a csv file with header row (API v2)}
 
 \item{media_file}{a media file to attach}
 
 \item{form_id}{the form's id}
 
-\item{form_data}{JSON array of data}
+\item{form_data}{JSON array or data.frame of data. In v3, only the first row of a data.frame is uploaded.}
 
-\item{soft_error}{JSON array of 'Yes' strings (or translations of it) to skip soft error messages}
+\item{soft_error}{JSON array of 'Yes' strings (or translations of it) to skip soft error messages (API v2)}
 
 \item{token}{OBM$token}
 
 \item{pds_url}{OBM$pds_url}
 
 \item{data_table}{OBM$project}
+
+\item{tracklog}{optional tracklog data (list or JSON) for API v3}
 }
 \description{
 This function allows put data into an OpenBioMaps server.
+For API v3 (api_version >= 3.0), 'put_data' and 'tracklog' are supported.
+Note: In API v3, 'put_data' currently supports single observation uploads only.
 }
 \examples{
 using own list of columns
