@@ -13,7 +13,9 @@ as.obm_class(x)
 This class function creates an obm_class
 }
 \examples{
+\dontrun{
 as.obm_class(DF)
+}
 }
 \keyword{as}
 \keyword{obm_class}

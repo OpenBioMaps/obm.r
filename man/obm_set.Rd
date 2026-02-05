@@ -20,7 +20,9 @@ Experimental function!
 This function allows you to set rules for obm_get.
 }
 \examples{
-automatically join tables
+#automatically join tables
+\dontrun{
 data <- obm_set('set_join',c('dead_animals','dead_animals_history'))
+}
 }
 \keyword{set}

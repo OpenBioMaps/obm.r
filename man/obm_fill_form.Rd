@@ -13,7 +13,9 @@ obm_fill_form(x)
 Offline data editor
 }
 \examples{
+\dontrun{
 data.frame <- obm_fill_form(obm_class)
+}
 }
 \keyword{fill}
 \keyword{form}

@@ -27,9 +27,12 @@ obm_init(
 This function is initiating an OBM connection.
 }
 \examples{
-connect to a database on the default server (openbiomaps.org)
+#connect to a database on the default server (openbiomaps.org)
 obm_init(project='dead_animals')
-connect on the local server intance to the butterfly database project
+
+#connect on the local server intance to the butterfly database project
+\dontrun{
 obm_init('http://localhost/biomaps','butterflies')
+}
 }
 \keyword{init}

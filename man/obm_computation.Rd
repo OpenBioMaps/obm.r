@@ -30,7 +30,9 @@ obm_computation(
 This function allows you to get data from an OpenBioMaps server.
 }
 \examples{
-Manage computational packs
-results <- obm_computation('post','afile.R',params->c())
+# Manage computations
+\dontrun{
+results <- obm_computation('post', 'afile.R', params = c())
+}
 }
 \keyword{computation}

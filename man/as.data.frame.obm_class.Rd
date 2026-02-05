@@ -4,15 +4,23 @@
 \alias{as.data.frame.obm_class}
 \title{as.data.frame class Function}
 \usage{
-\method{as.data.frame}{obm_class}(x)
+\method{as.data.frame}{obm_class}(x, row.names = NULL, optional = FALSE, ...)
 }
 \arguments{
-\item{obm_class}{S3 class object}
+\item{x}{\code{obm_class} S3 class object}
+
+\item{row.names}{Optional row names argument (ignored).}
+
+\item{optional}{Logical flag (ignored). Included for consistency with \code{as.data.frame}.}
+
+\item{...}{Additional arguments (ignored).}
 }
 \description{
-This class function extract data frame from obm_class S3 object
+Extract the underlying data frame from an \code{obm_class} S3 object.
 }
 \examples{
-as.data.frame(obm.data)
+\dontrun{
+as.data.frame(obm_data)
+}
 }
 \keyword{as.data.frame}

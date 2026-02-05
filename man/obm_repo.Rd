@@ -15,67 +15,97 @@ obm_repo(
 \arguments{
 \item{scope}{get or put}
 
+\item{token}{an oauth access token}
+
+\item{pds_url}{OpenBioMaps API url}
+
+\item{data_table}{OpenBioMaps project name}
+
 \item{params}{list which contains parameters for repozitorium}
 }
 \description{
 This function allows put data into a repozitorium.
 }
 \examples{
+#Getting server conf
+\dontrun{
+obm_repo('get',params=list(server_conf=1))
+}
 
-Getting server conf
-     obm_repo('get',params=list(server_conf=1))
+#Set the default server/project-repo for each of the following operations 
+#   - default is 0
+#   - set possible id's from server_conf query above
+\dontrun{
+obm_repo('set',params=list(REPO=x))
+obm_repo('set',params=list(REPO=x, PARENT=xxx))
+}
 
-Set the default server/project-repo for each of the following operations 
-   - default is 0
-   - set possible id's from server_conf query above
-     obm_repo('set',params=list(REPO=x))
-     obm_repo('set',params=list(REPO=x, PARENT=xxx))
+#Listing dataverse      
+\dontrun{
+obm_repo('get',params=list(type='dataverse',contents=1))
+obm_repo('get',params=list(type='dataverse'))
+}
 
-Listing dataverse      
-     obm_repo('get',params=list(type='dataverse',contents=1))
-     obm_repo('get',params=list(type='dataverse'))
+#Getting content of the named dataverse
+\dontrun{
+obm_repo('get',params=list(id='DINPI'))
+}
 
-Getting content of the named dataverse
-     obm_repo('get',params=list(id='DINPI'))
+#Get JSON Representation of a Dataset
+\dontrun{
+res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
+res <- obm_repo('get',params=list(type='datasets',id=xxx))
+repo_summary(res)
+}
 
-Get JSON Representation of a Dataset
-     res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
-     res <- obm_repo('get',params=list(type='datasets',id=xxx))
-     repo_summary(res)
+#Get versions of dataset
+\dontrun{
+obm_repo('get',params=list(type='datasets',id=42,version=''))
+obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+}
 
-Get versions of dataset
-     obm_repo('get',params=list(type='datasets',id=42,version=''))
-     obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+#Get files of dataset
+\dontrun{
+obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
+}
 
-Get files of dataset
-     obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
+#Get a file
+\dontrun{
+res <- obm_repo('get',params=list(type='datafile',id=83))
+res <- obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+}
 
-Get a file
-     res<-obm_repo('get',params=list(type='datafile',id=83))
-     res<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+#Create a dataverse
+\dontrun{
+res <- obm_repo('put',params=list(type='dataverse'))
+repo_summary(res)
+}
 
-Create a dataverse
-     res <- obm_repo('put',params=list(type='dataverse'))
-     repo_summary(res)
+#Create a dateset
+\dontrun{
+res <- obm_repo('put',params=list(type='datasets',dataverse=''))
+repo_summary(res)
+}
 
-Create a dateset
-     res <- obm_repo('put',params=list(type='datasets',dataverse=''))
-     repo_summary(res)
+#Add file to dataset (referenced by id or persistentUrl)
+#res <- obm_repo('put',params=list(type='datafile',file='...',id= | persistentUrl=))
+#repo_summary(res)
 
-Add file to dataset (referenced by id or persistentUrl)
-     res <- obm_repo('put',params=list(type='datafile',file='...',id= | persistentUrl=))
-     repo_summary(res)
+#Add object as file to dataset (referenced by id or persistentUrl)
+#- automatically convert data object to JSON
+#- returning with the last file's state
+#res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, 
+#                    data=list(results=res.list,init_params=init.df)))
+#repo_summary(res)
 
-Add object as file to dataset (referenced by id or persistentUrl)
-- automatically convert data object to JSON
-- returning with the last file's state
-     res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, data=list(results=res.list,init_params=init.df)))
-     repo_summary(res)
+#Delete file
+\dontrun{
+res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
+}
 
-Delete file
-     res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
-
-Set settings
-     res <- obm_repo('set',params=list(type='dataset',id=...))
+#Set settings
+\dontrun{
+res <- obm_repo('set',params=list(type='dataset',id=...))
+}
 }
 \keyword{repozitorium}

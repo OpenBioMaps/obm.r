@@ -30,24 +30,49 @@ obm_get(
 This function allows you to get data from an OpenBioMaps server.
 }
 \examples{
-get data rows from the main table from 39980 to 39988
-data <- obm_get('get_data',condition=list(obm_id = '39980:39988')
-get rows from the main table where column 'species' is 'Parus palustris'
-data <- obm_get('get_data',condition=list(species = 'Parus palustris')
-get 100 rows only from filtered query
-data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris')
-get all data from the default/main table
-data <- obm_get('get_data','*')
-get data from a non-default table
-obm_get('get_data','*',table='additional_data')
+#get data rows from the main table from 39980 to 39988
+\dontrun{
+data <- obm_get('get_data',condition=list(obm_id = '39980:39988'))
+}
 
-get list of available forms
+#get rows from the main table where column 'species' is 'Parus palustris'
+\dontrun{
+data <- obm_get('get_data',condition=list(species = 'Parus palustris'))
+}
+
+#get 100 rows only from filtered query
+\dontrun{
+data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris'))
+}
+
+#get all data from the default/main table
+\dontrun{
+data <- obm_get('get_data','*')
+}
+
+#get data from a non-default table
+\dontrun{
+obm_get('get_data','*',table='additional_data')
+}
+
+#get list of available forms
+\dontrun{
 data <- obm_get('get_form_list')
-get data of a form
+}
+
+#get data of a form
+\dontrun{
 data <- obm_get('get_form_data',73)
-perform strored query 'last' is a custom label
+}
+
+#perform strored query 'last' is a custom label
+\dontrun{
 obm_get('get_report','last')
-get list of available tables in the project
+}
+
+#get list of available tables in the project
+\dontrun{
 obm_get('get_tables')
+}
 }
 \keyword{get}

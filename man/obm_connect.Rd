@@ -7,7 +7,9 @@
 obm_connect(link = "", verbose = F)
 }
 \arguments{
-\item{an}{url link}
+\item{link}{an url link}
+
+\item{verbose}{increase verbosity}
 }
 \description{
 This function allows you to connect to an OBM server with a shared link
@@ -15,8 +17,10 @@ It using client_credentials authentication, so it is returning an access_token
 Return an oauth token
 }
 \examples{
+\dontrun{
 obm_connect()
 token <- obm_connect('abcdefghikl123456789')
+}
 }
 \keyword{auth}
 \keyword{connect}

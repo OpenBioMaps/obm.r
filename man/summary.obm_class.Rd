@@ -4,15 +4,19 @@
 \alias{summary.obm_class}
 \title{summary class Function}
 \usage{
-\method{summary}{obm_class}(x)
+\method{summary}{obm_class}(object, ...)
 }
 \arguments{
-\item{obm_class}{S3 data object}
+\item{object}{obm_class S3 data object}
+
+\item{...}{Further arguments passed to or from other methods.}
 }
 \description{
-This class function creates a standard summary
+Create a standard summary for an \code{obm_class} S3 object.
 }
 \examples{
-summary(obm.data)
+\dontrun{
+summary(obm_data)
+}
 }
 \keyword{summary}

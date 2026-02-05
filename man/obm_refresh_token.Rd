@@ -12,18 +12,20 @@ obm_refresh_token(
 )
 }
 \arguments{
+\item{token}{a refresh token}
+
 \item{url}{token url: obm_init() provide it}
 
 \item{client_id, }{default is R}
 
 \item{verbose, }{default is FALSE}
-
-\item{refresh}{token}
 }
 \description{
 This function allows you to refresh your OAuth2 token. It is usually a hidden function
 }
 \examples{
+\dontrun{
 obm_refresh_token(token)
+}
 }
 \keyword{refresh}

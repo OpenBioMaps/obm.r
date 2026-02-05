@@ -33,7 +33,9 @@ obm_auth(
 This function allows you to connect to and OBM server.
 }
 \examples{
+\dontrun{
 obm_auth()
 token <- obm_auth('foo@google.com','abc123')
+}
 }
 \keyword{auth}

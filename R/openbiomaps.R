@@ -1,3 +1,5 @@
+utils::globalVariables(c("OBM"))
+
 #' Init Function
 #'
 #' This function is initiating an OBM connection.
@@ -7,13 +9,15 @@
 #' @param verbose print some messages
 #' @param api_version API version
 #' @keywords init
-#' @export
 #' @examples
-#' connect to a database on the default server (openbiomaps.org)
+#' #connect to a database on the default server (openbiomaps.org)
 #' obm_init(project='dead_animals')
-#' connect on the local server intance to the butterfly database project
+#'
+#' #connect on the local server intance to the butterfly database project
+#' \dontrun{
 #' obm_init('http://localhost/biomaps','butterflies')
-
+#' }
+#' @export
 obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_version=2.3) {
         
     return_val <- TRUE
@@ -125,11 +129,12 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
 #' @param verbose print some messages
 #' @param paranoid hide password while typing (on Linux)
 #' @keywords auth
-#' @export
 #' @examples
+#' \dontrun{
 #' obm_auth()
 #' token <- obm_auth('foo@google.com','abc123')
-
+#' }
+#' @export
 obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=T) {
     if ( exists('token', envir=OBM ,inherits=F) & exists('time', envir=OBM ,inherits=F) & (username=='' & password=='')) {
         # auto refresh token 
@@ -192,13 +197,15 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
 #' This function allows you to connect to an OBM server with a shared link
 #' It using client_credentials authentication, so it is returning an access_token
 #' Return an oauth token
-#' @param an url link
+#' @param link an url link
+#' @param verbose increase verbosity
 #' @keywords connect auth shared link
-#' @export
 #' @examples
+#' \dontrun{
 #' obm_connect()
 #' token <- obm_connect('abcdefghikl123456789')
-
+#' }
+#' @export
 obm_connect <- function (link='',verbose=F) {
 
     if ( link=='' ) {
@@ -239,10 +246,8 @@ obm_connect <- function (link='',verbose=F) {
     }
 }
 
-
-
-#' unix like password function
-#' used in obm_auth()
+#' Unix like password function
+#' Used in obm_auth()
 #' 
 get_password <- function() {
     cat("Password: ")
@@ -263,28 +268,52 @@ get_password <- function() {
 #' @param url obm_init() provide it
 #' @param table optional table from project
 #' @keywords get
-#' @export
 #' @examples
-#' get data rows from the main table from 39980 to 39988
-#' data <- obm_get('get_data',condition=list(obm_id = '39980:39988')
-#' get rows from the main table where column 'species' is 'Parus palustris'
-#' data <- obm_get('get_data',condition=list(species = 'Parus palustris')
-#' get 100 rows only from filtered query
-#' data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris')
-#' get all data from the default/main table
-#' data <- obm_get('get_data','*')
-#' get data from a non-default table
-#' obm_get('get_data','*',table='additional_data')
+#' #get data rows from the main table from 39980 to 39988
+#' \dontrun{
+#' data <- obm_get('get_data',condition=list(obm_id = '39980:39988'))
+#' }
 #'
-#' get list of available forms
+#' #get rows from the main table where column 'species' is 'Parus palustris'
+#' \dontrun{
+#' data <- obm_get('get_data',condition=list(species = 'Parus palustris'))
+#' }
+#'
+#' #get 100 rows only from filtered query
+#' \dontrun{
+#' data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris'))
+#' }
+#'
+#' #get all data from the default/main table
+#' \dontrun{
+#' data <- obm_get('get_data','*')
+#' }
+#'
+#' #get data from a non-default table
+#' \dontrun{
+#' obm_get('get_data','*',table='additional_data')
+#' }
+#'
+#' #get list of available forms
+#' \dontrun{
 #' data <- obm_get('get_form_list')
-#' get data of a form
+#' }
+#'
+#' #get data of a form
+#' \dontrun{
 #' data <- obm_get('get_form_data',73)
-#' perform strored query 'last' is a custom label
+#' }
+#'
+#' #perform strored query 'last' is a custom label
+#' \dontrun{
 #' obm_get('get_report','last')
-#' get list of available tables in the project
+#' }
+#'
+#' #get list of available tables in the project
+#' \dontrun{
 #' obm_get('get_tables')
-
+#' }
+#' @export
 obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$token,url=OBM$pds_url,table=OBM$project) {
     if (scope=='') {
         return ("usage: obm_get(scope,...)")
@@ -388,9 +417,11 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
 #' This class function creates an obm_class
 #' @param x data.frame
 #' @keywords as obm_class
-#' @export
 #' @examples
+#' \dontrun{
 #' as.obm_class(DF)
+#' }
+#' @export
 as.obm_class <- function(x) {
     return(structure(list(data = x), class = "obm_class"))
 }
@@ -400,9 +431,12 @@ as.obm_class <- function(x) {
 #' Offline data editor
 #' @param x obm_class
 #' @keywords fill form
-#' @export
 #' @examples
+#' \dontrun{
 #' data.frame <- obm_fill_form(obm_class)
+#' }
+#' @importFrom utils edit
+#' @export
 obm_fill_form <- function(x) {
     d.f <- edit(x$data)
     # results <- validate(df,x$form_data)
@@ -412,32 +446,42 @@ obm_fill_form <- function(x) {
 
 #' summary class Function
 #'
-#' This class function creates a standard summary
-#' @param obm_class S3 data object
+#' Create a standard summary for an \code{obm_class} S3 object.
+#'
+#' @param object obm_class S3 data object
+#' @param ... Further arguments passed to or from other methods.
 #' @keywords summary
-#' @export
 #' @examples
-#' summary(obm.data)
-summary.obm_class <- function(x) {
+#' \dontrun{
+#' summary(obm_data)
+#' }
+#' @export
+summary.obm_class <- function(object, ...) {
     cat(paste('','Columns','\t','Rows',sep="\t"))
     cat("\n")
-    cat(paste('',ncol(x$data),'\t',nrow(x$data),sep="\t"))
+    cat(paste('',ncol(object$data),'\t',nrow(object$data),sep="\t"))
     cat("\n")
     cat("\n")
     cat(paste('','Column names',sep="\t"))
     cat("\n")
-    print(sort(colnames(x$data)))
+    print(sort(colnames(object$data)))
 }
 
 #' as.data.frame class Function
 #'
-#' This class function extract data frame from obm_class S3 object
-#' @param obm_class S3 class object
+#' Extract the underlying data frame from an \code{obm_class} S3 object.
+#'
+#' @param x \code{obm_class} S3 class object
+#' @param row.names Optional row names argument (ignored).
+#' @param optional Logical flag (ignored). Included for consistency with \code{as.data.frame}.
+#' @param ... Additional arguments (ignored).
 #' @keywords as.data.frame
-#' @export
 #' @examples
-#' as.data.frame(obm.data)
-as.data.frame.obm_class <- function(x) {
+#' \dontrun{
+#' as.data.frame(obm_data)
+#' }
+#' @export
+as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) {
     return(x$data)
 }
 
@@ -454,28 +498,45 @@ as.data.frame.obm_class <- function(x) {
 #' @param token OBM$token
 #' @param pds_url OBM$pds_url
 #' @param data_table OBM$project
+#' @param tracklog a GeoJSON tracklog string 
 #' @keywords put
-#' @export
 #' @examples
-#' using own list of columns
-#'   obm_get('get_form_list')
-#'   form <- obm_get('get_form_data',57)
-#'   columns <- unlist(form[,'column'])
-#'   t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
+#' #using own list of columns
+#' \dontrun{
+#' obm_get('get_form_list')
+#' form <- obm_get('get_form_data',57)
+#' columns <- unlist(form[,'column'])
+#' t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
+#' }
 #'
-#' using default columns list:
-#'   t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
+#' #using default columns list:
+#' \dontrun{
+#' t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
+#' }
 #'
-#' JSON upload
-#'   data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),ncol=5,nrow=2,byrow=T)
-#'   #colnames(data)<-c("species","nume","place","no","geom")
-#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam'))
+#' #JSON upload
+#' \dontrun{
+#' data <- matrix(c(
+#'                  c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
+#'                  c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')
+#'                 ),ncol=5,nrow=2,byrow=T)
+#' #colnames(data)<-c("species","nume","place","no","geom")
+#' t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
+#'                      form_header=c('faj','szamossag','hely','egyedszam'))
+#' }
 #' 
-#' with attached file
-#'   data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
-#'   #colnames(data)<-c("species","nume","place","no",'Attach')
-#'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
-#'
+#' #with attached file
+#' \dontrun{
+#' data <- matrix(c(
+#'                  c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
+#'                  c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')
+#'                 ),ncol=5,nrow=2,byrow=T)
+#' #colnames(data)<-c("species","nume","place","no",'Attach')
+#' t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
+#'                      form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),
+#'                      media_file=c('~/szamok.odt','~/a.pdf'))
+#' }
+#' @export
 obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',
                      soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project, tracklog=NULL) {
     if ( is.null(scope) ) {
@@ -613,11 +674,12 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
 #' @param token obm_init() provide it
 #' @param url obm_init() provide it
 #' @keywords set
-#' @export
 #' @examples
-#' automatically join tables
+#' #automatically join tables
+#' \dontrun{
 #' data <- obm_set('set_join',c('dead_animals','dead_animals_history'))
-
+#' }
+#' @export
 obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
     if (scope=='' || condition == '') {
         return ("usage: obm_set(scope,condition,...)")
@@ -648,15 +710,16 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' Auth Function
 #'
 #' This function allows you to refresh your OAuth2 token. It is usually a hidden function
-#' @param refresh token
+#' @param token a refresh token
 #' @param url token url: obm_init() provide it
 #' @param client_id, default is R
 #' @param verbose, default is FALSE
 #' @keywords refresh
-#' @export
 #' @examples
+#' \dontrun{
 #' obm_refresh_token(token)
-
+#' }
+#' @export
 obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,client_id='R',verbose=F) {
     h <- httr::POST(url,body=list(grant_type='refresh_token',refresh_token=token,client_id=client_id))
     j <- httr::content(h, "parsed", "application/json")
@@ -684,17 +747,20 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
 #' SQL Interface
 #'
 #' It is a simple SQL Query interface function
-#' @param sqlcmd
-#' username most probably automatically set by create_pg_user module
-#' password most probably automatically set by create_pg_user module
-#' paranoid password promt type
-#' postgres server port, default is 5432
-#' database remote database, default is gisdata
+#' @param sqlcmd an sql command
+#' @param username most probably automatically set by create_pg_user module
+#' @param password most probably automatically set by create_pg_user module
+#' @param paranoid password promt type
+#' @param port postgres server port, default is 5432
+#' @param database remote database, default is gisdata
 #' @keywords postgres
-#' @export
 #' @examples
-#' obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days FROM nestboxes WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
-
+#' \dontrun{
+#' obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days 
+#'                FROM nestboxes 
+#'                WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
+#' }
+#' @export
 obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,database='gisdata') {
 
 
@@ -746,7 +812,7 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
     OBM$sqluser <- username 
     OBM$sqlpasswd <- password
 
-    drv <- RPostgreSQL:::PostgreSQL()
+    drv <- RPostgreSQL::PostgreSQL()
     #drv <- DBI::dbDriver("PostgreSQL")
     con <- DBI::dbConnect(drv, dbname = database,
                      host = OBM$server,port = port,
@@ -773,65 +839,92 @@ randtext <- function(n = 5000) {
 #' This function allows put data into a repozitorium.
 #' @param scope get or put 
 #' @param params list which contains parameters for repozitorium
+#' @param token an oauth access token
+#' @param pds_url OpenBioMaps API url
+#' @param data_table OpenBioMaps project name
 #' @keywords repozitorium
-#' @export
 #' @examples
+#' #Getting server conf
+#' \dontrun{
+#' obm_repo('get',params=list(server_conf=1))
+#' }
 #'
-#' Getting server conf
-#'      obm_repo('get',params=list(server_conf=1))
+#' #Set the default server/project-repo for each of the following operations 
+#' #   - default is 0
+#' #   - set possible id's from server_conf query above
+#' \dontrun{
+#' obm_repo('set',params=list(REPO=x))
+#' obm_repo('set',params=list(REPO=x, PARENT=xxx))
+#' }
 #'
-#' Set the default server/project-repo for each of the following operations 
-#'    - default is 0
-#'    - set possible id's from server_conf query above
-#'      obm_repo('set',params=list(REPO=x))
-#'      obm_repo('set',params=list(REPO=x, PARENT=xxx))
+#' #Listing dataverse      
+#' \dontrun{
+#' obm_repo('get',params=list(type='dataverse',contents=1))
+#' obm_repo('get',params=list(type='dataverse'))
+#' }
 #'
-#' Listing dataverse      
-#'      obm_repo('get',params=list(type='dataverse',contents=1))
-#'      obm_repo('get',params=list(type='dataverse'))
+#' #Getting content of the named dataverse
+#' \dontrun{
+#' obm_repo('get',params=list(id='DINPI'))
+#' }
 #'
-#' Getting content of the named dataverse
-#'      obm_repo('get',params=list(id='DINPI'))
+#' #Get JSON Representation of a Dataset
+#' \dontrun{
+#' res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
+#' res <- obm_repo('get',params=list(type='datasets',id=xxx))
+#' repo_summary(res)
+#' }
 #'
-#' Get JSON Representation of a Dataset
-#'      res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
-#'      res <- obm_repo('get',params=list(type='datasets',id=xxx))
-#'      repo_summary(res)
+#' #Get versions of dataset
+#' \dontrun{
+#' obm_repo('get',params=list(type='datasets',id=42,version=''))
+#' obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+#' }
 #'
-#' Get versions of dataset
-#'      obm_repo('get',params=list(type='datasets',id=42,version=''))
-#'      obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
+#' #Get files of dataset
+#' \dontrun{
+#' obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
+#' }
 #'
-#' Get files of dataset
-#'      obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
+#' #Get a file
+#' \dontrun{
+#' res <- obm_repo('get',params=list(type='datafile',id=83))
+#' res <- obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+#' }
 #'
-#' Get a file
-#'      res<-obm_repo('get',params=list(type='datafile',id=83))
-#'      res<-obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
+#' #Create a dataverse
+#' \dontrun{
+#' res <- obm_repo('put',params=list(type='dataverse'))
+#' repo_summary(res)
+#' }
 #'
-#' Create a dataverse
-#'      res <- obm_repo('put',params=list(type='dataverse'))
-#'      repo_summary(res)
+#' #Create a dateset
+#' \dontrun{
+#' res <- obm_repo('put',params=list(type='datasets',dataverse=''))
+#' repo_summary(res)
+#' }
 #'
-#' Create a dateset
-#'      res <- obm_repo('put',params=list(type='datasets',dataverse=''))
-#'      repo_summary(res)
+#' #Add file to dataset (referenced by id or persistentUrl)
+#' #res <- obm_repo('put',params=list(type='datafile',file='...',id= | persistentUrl=))
+#' #repo_summary(res)
 #'
-#' Add file to dataset (referenced by id or persistentUrl)
-#'      res <- obm_repo('put',params=list(type='datafile',file='...',id= | persistentUrl=))
-#'      repo_summary(res)
+#' #Add object as file to dataset (referenced by id or persistentUrl)
+#' #- automatically convert data object to JSON
+#' #- returning with the last file's state
+#' #res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, 
+#' #                    data=list(results=res.list,init_params=init.df)))
+#' #repo_summary(res)
 #'
-#' Add object as file to dataset (referenced by id or persistentUrl)
-#' - automatically convert data object to JSON
-#' - returning with the last file's state
-#'      res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, data=list(results=res.list,init_params=init.df)))
-#'      repo_summary(res)
+#' #Delete file
+#' \dontrun{
+#' res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
+#' }
 #'
-#' Delete file
-#'      res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
-#'
-#' Set settings
-#'      res <- obm_repo('set',params=list(type='dataset',id=...))
+#' #Set settings
+#' \dontrun{
+#' res <- obm_repo('set',params=list(type='dataset',id=...))
+#' }
+#' @export
 obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project,params=NULL) {
 
     if ( is.null(scope) ) {
@@ -1090,7 +1183,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         if (inherits(j, "try-error")) {
             j <- httr::content(h,"text")
         }
-        if ( class(j) == 'raw' ) {
+        if (inherits(j, 'raw')) {
             jk <- httr::headers(h)
             return(list(header=jk$`content-disposition`,data=j))
         } else {
@@ -1214,10 +1307,12 @@ repo_summary <- function(x=NULL) {
 #' @param token obm_init() provide it
 #' @param url obm_init() provide it
 #' @keywords computation
-#' @export
 #' @examples
-#' Manage computational packs
-#' results <- obm_computation('post','afile.R',params->c())
+#' # Manage computations
+#' \dontrun{
+#' results <- obm_computation('post', 'afile.R', params = c())
+#' }
+#' @export
 obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_files=NULL, params=NULL, config_file=NULL) {
 
     if (action=='') {
@@ -1240,14 +1335,14 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
 
         if (dir.exists(data_files)) {
             files2zip <- dir(data_files, full.names = TRUE)
-            zip(zipfile = 'scripts.zip', files = files2zip)
+            utils::zip(zipfile = 'scripts.zip', files = files2zip)
             data_files <- 'scripts.zip'
         }
         
         if (typeof(data_files)=='list') {
             #for ( i in data_files ) {
             #}
-            zip("scripts.zip", data_files)
+            utils::zip("scripts.zip", data_files)
             data_files <- 'scripts.zip'
         }
 
