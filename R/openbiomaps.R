@@ -481,8 +481,6 @@ obm_get_graphql <- function(scope, control_condition, condition, token, url, tab
             )
         }
 
-        print(scope)
-
         if (scope == "get_public_data") {
             target_url <- paste0(url, "get-public-data")
             h <- httr::POST(target_url,
@@ -495,7 +493,6 @@ obm_get_graphql <- function(scope, control_condition, condition, token, url, tab
                        encode = "json",
                        httr::add_headers(Authorization = token$access_token))
         }
-        print(target_url)
 
         if (httr::status_code(h) != 200) {
             return(paste("http error:", httr::status_code(h), httr::content(h, "text", encoding = "UTF-8")))
@@ -658,8 +655,6 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
             obm_refresh_token()
         }
     }
-
-    print(scope)
 
     # API v3 Routing
     if (exists("api_version", envir=OBM) && OBM$api_version >= 3) {
