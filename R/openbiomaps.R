@@ -481,11 +481,21 @@ obm_get_graphql <- function(scope, control_condition, condition, token, url, tab
             )
         }
 
-        # Execute query
-        h <- httr::POST(paste0(url, "get-data"),
+        print(scope)
+
+        if (scope == "get_public_data") {
+            target_url <- paste0(url, "get-public-data")
+            h <- httr::POST(target_url,
+                       body = req_body,
+                       encode = "json")
+        } else {
+            target_url <- paste0(url, "get-data")
+            h <- httr::POST(target_url,
                        body = req_body,
                        encode = "json",
                        httr::add_headers(Authorization = token$access_token))
+        }
+        print(target_url)
 
         if (httr::status_code(h) != 200) {
             return(paste("http error:", httr::status_code(h), httr::content(h, "text", encoding = "UTF-8")))
@@ -516,7 +526,6 @@ obm_get_graphql <- function(scope, control_condition, condition, token, url, tab
 
 # Helper to execute REST API v3 queries (non-GraphQL)
 obm_get_rest_v3 <- function(scope, control_condition, condition, token, url, table) {
-
     if (scope == 'get_form') {
         if ("published_form_id" %in% names(condition)) {
             # /v3/forms/{published-form-id}
@@ -650,9 +659,13 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
         }
     }
 
+    print(scope)
+
     # API v3 Routing
     if (exists("api_version", envir=OBM) && OBM$api_version >= 3) {
-        if (scope == 'get_data') {
+        if (scope == 'get_public_data') {
+            return(obm_get_graphql(scope, control_condition, condition, NULL, url, table))
+        } else if (scope == 'get_data') {
             return(obm_get_graphql(scope, control_condition, condition, token, url, table))
         } else {
             if (scope == 'get_form_list' || scope == 'get_form_data') {
