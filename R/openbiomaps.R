@@ -16,7 +16,7 @@
 #' # connect on the local server instance to the butterfly database project
 #' obm_init('http://localhost/biomaps','butterflies')
 
-obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_version=2.3) {
+obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_version=3) {
 
     return_val <- TRUE
     domain <- ''
@@ -814,61 +814,73 @@ as.data.frame.obm_class <- function(x) {
 
 #' obm_put_v3 Helper
 #' Internal function to handle API v3 puts
-obm_put_v3 <- function(scope, form_id, form_data, tracklog, token, url, verbose=F) {
+obm_put_v3 <- function(scope, form_id, form_data, media_file, token, url, verbose=F) {
 
   if (scope == 'put_data') {
       target_url <- paste0(url, "forms/", form_id)
 
       # Prepare data
-      # If form_data is DF, take first row or iterate?
-      # Spec says "Uploads a single observation".
-      # We will implement for the first row of form_data if it's a DF,
-      # or assume it's a list for a single item.
-
       row_data <- form_data
       if (is.data.frame(form_data)) {
           if (nrow(form_data) > 1) {
               message("Warning: API v3 endpoint only supports single observation upload. Uploading first row.")
           }
           row_data <- as.list(form_data[1, , drop=FALSE])
+          # Convert factors to characters and remove dataframe-specific attributes
+          row_data <- lapply(row_data, function(x) if(is.factor(x)) as.character(x) else x)
       }
 
-      # Flatten list if needed or toJSON
-      json_data <- jsonlite::toJSON(row_data, auto_unbox = TRUE)
-
-      body_list <- list(
-          data = json_data,
-          metadata = "{}" # simple empty metadata or default? Spec says required.
+      # Construct valid metadata
+      # UUID approximation: R-timestamp-random
+      metadata <- list(
+          id = paste0("R-", as.integer(unclass(Sys.time())), "-", round(runif(1, 1000, 9999))),
+          app_version = "R-client",
+          form_version = as.integer(unclass(Sys.time())),
+          started_at = as.integer(unclass(Sys.time())),
+          finished_at = as.integer(unclass(Sys.time())),
+          timezone = 0
       )
 
-      # Handle files if any (not implemented in this simplified pass unless requested)
+      if (is.null(media_file) || length(media_file) == 0) {
+          # JSON upload (preferred for non-file data in v3)
+          body_list <- list(
+              data = row_data,
+              metadata = metadata
+          )
 
-      h <- httr::POST(target_url,
-                      body = body_list,
-                      encode = "multipart",
-                      httr::add_headers(Authorization = token$access_token))
+          h <- httr::POST(target_url,
+                          body = body_list,
+                          encode = "json",
+                          httr::add_headers(Authorization = token$access_token))
+      } else {
+          # Multipart upload for files
+          # In multipart, data and metadata must be stringified JSON
+          body_list <- list(
+              data = jsonlite::toJSON(row_data, auto_unbox = TRUE),
+              metadata = jsonlite::toJSON(metadata, auto_unbox = TRUE)
+          )
+
+          # Add files
+          for (f in media_file) {
+              if (file.exists(f)) {
+                  body_list[[length(body_list) + 1]] <- httr::upload_file(f)
+              } else {
+                  message("Warning: media file not found: ", f)
+              }
+          }
+          # All file arguments should have the same name "files[]" for the API to process them as an array
+          names(body_list)[3:length(body_list)] <- "files[]"
+
+          h <- httr::POST(target_url,
+                          body = body_list,
+                          encode = "multipart",
+                          httr::add_headers(Authorization = token$access_token))
+      }
 
       if (httr::status_code(h) %in% c(200, 201)) {
           return(httr::content(h, "text"))
       } else {
-          return(paste("http error:", httr::status_code(h), httr::content(h, "text")))
-      }
-
-  } else if (!is.null(tracklog) || scope == 'tracklog') {
-      target_url <- paste0(url, "tracklogs")
-
-      # tracklog should be a list or valid JSON object structure for v3
-      # Body: JSON
-
-      h <- httr::POST(target_url,
-                      body = tracklog,
-                      encode = "json",
-                      httr::add_headers(Authorization = token$access_token))
-
-      if (httr::status_code(h) %in% c(200, 201)) {
-          return(TRUE)
-      } else {
-           return(paste("http error:", httr::status_code(h)))
+          return(paste("http error:", httr::status_code(h), httr::content(h, "text", encoding = "UTF-8")))
       }
   }
 
@@ -878,10 +890,10 @@ obm_put_v3 <- function(scope, form_id, form_data, tracklog, token, url, verbose=
 #' Put Function
 #'
 #' This function allows put data into an OpenBioMaps server.
-#' For API v3 (api_version >= 3.0), 'put_data' and 'tracklog' are supported.
-#' Note: In API v3, 'put_data' currently supports single observation uploads only.
+#' For API v3 (api_version >= 3.0), 'put_data' is supported.
+#' Note: In API v3, 'put_data' currently supports single observation upload only.
 #'
-#' @param scope currently put_data supported. For v3, 'tracklog' can also be used here or via the tracklog parameter.
+#' @param scope currently put_data supported.
 #' @param form_header database column names vector, if missing default is the full list from the form
 #' @param data_file a csv file with header row (API v2)
 #' @param media_file a media file to attach
@@ -891,7 +903,6 @@ obm_put_v3 <- function(scope, form_id, form_data, tracklog, token, url, verbose=
 #' @param token OBM$token
 #' @param pds_url OBM$pds_url
 #' @param data_table OBM$project
-#' @param tracklog optional tracklog data (list or JSON) for API v3
 #' @keywords put
 #' @export
 #' @examples
@@ -915,9 +926,9 @@ obm_put_v3 <- function(scope, form_id, form_data, tracklog, token, url, verbose=
 #'   t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
 #'
 obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',
-                     soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project, tracklog=NULL) {
+                     soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project) {
     if ( is.null(scope) ) {
-        return ("usage: obm_get(scope...)")
+        return ("usage: obm_put(scope...)")
     }
     if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
         # auto refresh token
@@ -931,7 +942,7 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
     }
 
     if (exists("api_version", envir=OBM) & OBM$api_version >= 3) {
-        return(obm_put_v3(scope, form_id, form_data, tracklog, token, pds_url))
+        return(obm_put_v3(scope, form_id, form_data, media_file, token, pds_url))
     }
 
     # create json from data.frame - api expect JSON array as api_form_data
@@ -1013,16 +1024,6 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
         h <- httr::POST(pds_url,
                     body=list(access_token=token$access_token, scope=scope, table=data_table, form_id=form_id, header=form_header, data=form_data),
                     encode="form")
-
-    } else if (!is.null(tracklog)) {
-        h <- httr::POST(
-                        pds_url,
-                        body=list(
-                                  access_token=token$access_token,
-                                  scope='tracklog',
-                                  value=tracklog),
-                        encode="form"
-        )
 
     } else {
 
