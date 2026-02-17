@@ -9,12 +9,13 @@ utils::globalVariables(c("OBM"))
 #' @param verbose print some messages
 #' @param api_version API version
 #' @keywords init
+#' @return boolean
 #' @examples
 #' #connect to a database on the default server (openbiomaps.org)
 #' obm_init(project='dead_animals')
 #'
 #' #connect on the local server intance to the butterfly database project
-#' \dontrun{
+#' \donttest{
 #' obm_init('http://localhost/biomaps','butterflies')
 #' }
 #' @export
@@ -45,7 +46,8 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
     # get project
     h <- httr::POST(init_url,body=list(scope='get_project',value='get_project_list'),encode='form')
     if (httr::status_code(h) != 200) {
-        return(paste("http error: ",httr::status_code(h) ))
+        warning(paste("http error: ",httr::status_code(h) ))
+        return FALSE
     }
     h.content <- httr::content(h,'text')
     h.json <- jsonlite::fromJSON( h.content )
@@ -71,14 +73,15 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
         }
     } else {
         if (exists('message',h.json)) {
-            print(h.json$message)
+            message(h.json$message)
         }
         else if (exists('data',h.json)) {
-            print(h.json$data)
+            message(h.json$data)
         }
     }
     if (domain == '') {
-        return(paste("Project ",project,"does not exists! Choose a valid project name."))
+        warning(paste("Project ",project,"does not exists! Choose a valid project name."))
+        return FALSE
     }
 
     protocol <- gsub('(https?)://.*','\\1',domain)
@@ -94,7 +97,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
 
     s <- httr::GET(OBM$token_url)
     if (httr::status_code(s) == 404 ) {
-        message("The token url is not valid! ", OBM$token_url)
+        warning("The token url is not valid! ", OBM$token_url)
         verbose <- TRUE
         return_val <- FALSE
     }
@@ -129,8 +132,9 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
 #' @param verbose print some messages
 #' @param paranoid hide password while typing (on Linux)
 #' @keywords auth
+#' @return boolean
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' obm_auth()
 #' token <- obm_auth('foo@google.com','abc123')
 #' }
@@ -173,7 +177,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
         z <- Sys.time()
         j <- httr::content(h, "parsed", "application/json")
         if (verbose) {
-            print(j)
+            message(j)
         }
         if (exists('access_token',j)) {
             OBM$token <- j
@@ -200,8 +204,9 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
 #' @param link an url link
 #' @param verbose increase verbosity
 #' @keywords connect auth shared link
+#' @return boolean
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' obm_connect()
 #' token <- obm_connect('abcdefghikl123456789')
 #' }
@@ -214,11 +219,11 @@ obm_connect <- function (link='',verbose=FALSE) {
 
     h <- httr::POST(OBM$pds_url,body=list(shared_link=link, scope='shared_link'))
     if (httr::status_code(h)==401) {
-        message('Authorization failed!')
+        warning('Authorization failed!')
         return(FALSE)
     }
     if (httr::status_code(h) != 200) {
-        message("http error: ",httr::status_code(h) )
+        warning("http error: ",httr::status_code(h) )
         return(FALSE)
     }
 
@@ -238,16 +243,20 @@ obm_connect <- function (link='',verbose=FALSE) {
 
     } else {
         if (exists('message',h.json)) {
-            return(h.json$message)
+            warning(h.json$message)
+            return(FALSE)
         }
         else if (exists('data',h.json)) {
-            return(h.json$data)
+            warning(h.json$data)
+            return(FALSE)
         }
     }
 }
 
 #' Unix like password function
+#'
 #' Used in obm_auth()
+#' @return text
 #' 
 get_password <- function() {
     cat("Password: ")
@@ -268,55 +277,57 @@ get_password <- function() {
 #' @param url obm_init() provide it
 #' @param table optional table from project
 #' @keywords get
+#' @return data.frame or FALSE
 #' @examples
 #' #get data rows from the main table from 39980 to 39988
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_data',condition=list(obm_id = '39980:39988'))
 #' }
 #'
 #' #get rows from the main table where column 'species' is 'Parus palustris'
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_data',condition=list(species = 'Parus palustris'))
 #' }
 #'
 #' #get 100 rows only from filtered query
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris'))
 #' }
 #'
 #' #get all data from the default/main table
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_data','*')
 #' }
 #'
 #' #get data from a non-default table
-#' \dontrun{
+#' \donttest{
 #' obm_get('get_data','*',table='additional_data')
 #' }
 #'
 #' #get list of available forms
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_form_list')
 #' }
 #'
 #' #get data of a form
-#' \dontrun{
+#' \donttest{
 #' data <- obm_get('get_form_data',73)
 #' }
 #'
 #' #perform strored query 'last' is a custom label
-#' \dontrun{
+#' \donttest{
 #' obm_get('get_report','last')
 #' }
 #'
 #' #get list of available tables in the project
-#' \dontrun{
+#' \donttest{
 #' obm_get('get_tables')
 #' }
 #' @export
 obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$token,url=OBM$pds_url,table=OBM$project) {
     if (scope=='') {
-        return ("usage: obm_get(scope,...)")
+        message ("usage: obm_get(scope,...)")
+        return(FALSE)
     }
     if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
@@ -352,19 +363,19 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
                     encode='form')
     if (httr::status_code(h) != 200) {
         if (httr::status_code(h) == 403) {
-            message( "Resource access denied" )
+            warning( "Resource access denied" )
         } 
         else if (httr::status_code(h) == 202) {
-            message( "Processing failed" )
+            warning( "Processing failed" )
         } 
         else if (httr::status_code(h) == 204) {
-            message( "No data return" )
+            warning( "No data return" )
         } 
         else if (httr::status_code(h) == 400) {
-            message( "Error" )
+            warning( "Error" )
         } 
         else if (httr::status_code(h) == 500) {
-            message( "Server error" )
+            warning( "Server error" )
         }
     }
 
@@ -388,10 +399,12 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
             return(h.cl$data)
         } else {
             if (exists('message',h.json)) {
-                return(h.json$message)
+                warning(h.json$message)
+                return(FALSE)
             }
             else if (exists('data',h.json)) {
-                return(h.json$data)
+                warning(h.json$data)
+                return(FALSE)
             }
         }
     #} else {
@@ -417,8 +430,9 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
 #' This class function creates an obm_class
 #' @param x data.frame
 #' @keywords as obm_class
+#' @return object
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' as.obm_class(DF)
 #' }
 #' @export
@@ -431,8 +445,9 @@ as.obm_class <- function(x) {
 #' Offline data editor
 #' @param x obm_class
 #' @keywords fill form
+#' @return data.frame
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data.frame <- obm_fill_form(obm_class)
 #' }
 #' @importFrom utils edit
@@ -451,8 +466,9 @@ obm_fill_form <- function(x) {
 #' @param object obm_class S3 data object
 #' @param ... Further arguments passed to or from other methods.
 #' @keywords summary
+#' @return object
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' summary(obm_data)
 #' }
 #' @export
@@ -476,8 +492,9 @@ summary.obm_class <- function(object, ...) {
 #' @param optional Logical flag (ignored). Included for consistency with \code{as.data.frame}.
 #' @param ... Additional arguments (ignored).
 #' @keywords as.data.frame
+#' @return data.frame
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' as.data.frame(obm_data)
 #' }
 #' @export
@@ -500,9 +517,10 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' @param data_table OBM$project
 #' @param tracklog a GeoJSON tracklog string 
 #' @keywords put
+#' @return data.frame
 #' @examples
 #' #using own list of columns
-#' \dontrun{
+#' \donttest{
 #' obm_get('get_form_list')
 #' form <- obm_get('get_form_data',57)
 #' columns <- unlist(form[,'column'])
@@ -510,12 +528,12 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' }
 #'
 #' #using default columns list:
-#' \dontrun{
+#' \donttest{
 #' t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 #' }
 #'
 #' #JSON upload
-#' \dontrun{
+#' \donttest{
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')
@@ -526,7 +544,7 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' }
 #' 
 #' #with attached file
-#' \dontrun{
+#' \donttest{
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')
@@ -540,7 +558,8 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,form_id='',form_data='',
                      soft_error='',token=OBM$token,pds_url=OBM$pds_url,data_table=OBM$project, tracklog=NULL) {
     if ( is.null(scope) ) {
-        return ("usage: obm_get(scope...)")
+        message ("usage: obm_get(scope...)")
+        return ( FALSE )
     }
     if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
@@ -595,13 +614,13 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
         }
         if (!is.null(form_header) && is.vector(form_header)) {
             if ( !length(which(form_header=='obm_files_id')) ) {
-                message ("obm_files_id column should be exists in header names")
+                warning ("obm_files_id column should be exists in header names")
             } else {
                 obm_files_id_idx <- which(form_header=='obm_files_id')
             }
         } else {
             if ( !length(which(colnames(form_data)=='obm_files_id')) ) {
-                message ("obm_files_id column should be exists in header names")
+                warning ("obm_files_id column should be exists in header names")
             } else {
                 obm_files_id_idx <- which(colnames(form_data)=='obm_files_id')
             }
@@ -656,11 +675,12 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
     }
 
     if (httr::status_code(h) != 200) {
-        return(paste("http error:",httr::status_code(h),h ))
+        warning(paste("http error:",httr::status_code(h),h ))
+        return ( FALSE )
     }
 
     h.list <- httr::content(h, "parsed", "application/json")
-    h.list
+    return(h.list)
 }
 
 #obm_put(scope='put_data',form_id=1,form_header_names=columns,api_form_data=as.data.frame(data))
@@ -676,7 +696,7 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
 #' @keywords set
 #' @examples
 #' #automatically join tables
-#' \dontrun{
+#' \donttest{
 #' data <- obm_set('set_join',c('dead_animals','dead_animals_history'))
 #' }
 #' @export
@@ -716,7 +736,7 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' @param verbose, default is FALSE
 #' @keywords refresh
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' obm_refresh_token(token)
 #' }
 #' @export
@@ -755,7 +775,7 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
 #' @param database remote database, default is gisdata
 #' @keywords postgres
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days 
 #'                FROM nestboxes 
 #'                WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
@@ -828,6 +848,7 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=TRUE,port=5432
 #' This function allows put data into a repozitorium.
 #' @param n replication 
 #' @keywords random text
+#' @return text
 #' @export
 randtext <- function(n = 5000) {
   a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
@@ -843,63 +864,64 @@ randtext <- function(n = 5000) {
 #' @param pds_url OpenBioMaps API url
 #' @param data_table OpenBioMaps project name
 #' @keywords repozitorium
+#' @return text
 #' @examples
 #' #Getting server conf
-#' \dontrun{
+#' \donttest{
 #' obm_repo('get',params=list(server_conf=1))
 #' }
 #'
 #' #Set the default server/project-repo for each of the following operations 
 #' #   - default is 0
 #' #   - set possible id's from server_conf query above
-#' \dontrun{
+#' \donttest{
 #' obm_repo('set',params=list(REPO=x))
 #' obm_repo('set',params=list(REPO=x, PARENT=xxx))
 #' }
 #'
 #' #Listing dataverse      
-#' \dontrun{
+#' \donttest{
 #' obm_repo('get',params=list(type='dataverse',contents=1))
 #' obm_repo('get',params=list(type='dataverse'))
 #' }
 #'
 #' #Getting content of the named dataverse
-#' \dontrun{
+#' \donttest{
 #' obm_repo('get',params=list(id='DINPI'))
 #' }
 #'
 #' #Get JSON Representation of a Dataset
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
 #' res <- obm_repo('get',params=list(type='datasets',id=xxx))
 #' repo_summary(res)
 #' }
 #'
 #' #Get versions of dataset
-#' \dontrun{
+#' \donttest{
 #' obm_repo('get',params=list(type='datasets',id=42,version=''))
 #' obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
 #' }
 #'
 #' #Get files of dataset
-#' \dontrun{
+#' \donttest{
 #' obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
 #' }
 #'
 #' #Get a file
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('get',params=list(type='datafile',id=83))
 #' res <- obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
 #' }
 #'
 #' #Create a dataverse
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('put',params=list(type='dataverse'))
 #' repo_summary(res)
 #' }
 #'
 #' #Create a dateset
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('put',params=list(type='datasets',dataverse=''))
 #' repo_summary(res)
 #' }
@@ -916,12 +938,12 @@ randtext <- function(n = 5000) {
 #' #repo_summary(res)
 #'
 #' #Delete file
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
 #' }
 #'
 #' #Set settings
-#' \dontrun{
+#' \donttest{
 #' res <- obm_repo('set',params=list(type='dataset',id=...))
 #' }
 #' @export
@@ -963,6 +985,8 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
                 params <- within(params, rm(file))
             } else {
                 if (!is.null(params$data)) {
+                    oldwd <- getwd()
+                    on.exit(setwd(oldwd))
                     tmp_dir <- paste("obm_temp_dir-",randtext(1),sep='')
                     dir.create(tmp_dir)
                     setwd(tmp_dir)
@@ -1289,6 +1313,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
 #' Creating readable labels, notes and summary of repo output
 #' @param x repo output object
 #' @keywords label summary
+#' @return text
 #' @export
 repo_summary <- function(x=NULL) {
 
@@ -1307,16 +1332,18 @@ repo_summary <- function(x=NULL) {
 #' @param token obm_init() provide it
 #' @param url obm_init() provide it
 #' @keywords computation
+#' @return boolean
 #' @examples
 #' # Manage computations
-#' \dontrun{
+#' \donttest{
 #' results <- obm_computation('post', 'afile.R', params = c())
 #' }
 #' @export
 obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_files=NULL, params=NULL, config_file=NULL) {
 
     if (action=='') {
-        return ("usage: obm_computation(action, params=...)")
+        message ("usage: obm_computation(action, params=...)")
+        return (FALSE)
     }
     if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
@@ -1351,7 +1378,8 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
                     encode="multipart")
             
             if (httr::status_code(h) != 200) {
-                return(paste("http error:",httr::status_code(h),h ))
+                warning(paste("http error:",httr::status_code(h),h ))
+                return( FALSE )
             }
             
             j <- httr::content(h, "parsed", "application/json")
@@ -1361,7 +1389,8 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
                 # Computation ID, Remote server, ...
                 z <- j$data
             } else {
-                return( j )
+                warning( j )
+                return( FALSE )
             }
     } else if (action == 'get-status') {
 
@@ -1370,10 +1399,12 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
                         encode='form')
         if (httr::status_code(h) != 200) {
             if (httr::status_code(h) == 403) {
-                message( "Resource access denied" )
+                warning( "Resource access denied" )
+                return( FALSE )
             } 
             else if (httr::status_code(h) == 500) {
-                message( "Server error" )
+                warning( "Server error" )
+                return( FALSE )
             }
         } else {
             j <- httr::content(h, "parsed", "application/json")
@@ -1383,7 +1414,8 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
                 # Computation ID, Remote server, ...
                 z <- j$data
             } else {
-                return( j )
+                warning( j )
+                return( FALSE )
             }
         }
     } else if (action == 'get-results') {
@@ -1394,9 +1426,11 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
         if (httr::status_code(h) != 200) {
             if (httr::status_code(h) == 403) {
                 message( "Resource access denied" )
+                return( FALSE )
             } 
             else if (httr::status_code(h) == 500) {
                 message( "Server error" )
+                return( FALSE )
             }
         } else {
             j <- httr::content(h, "parsed", "application/json")
@@ -1406,7 +1440,8 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
                 # Computation ID, Remote server, ...
                 z <- j$data
             } else {
-                return( j )
+                warning( j )
+                return( FALSE )
             }
         }
     } else {
