@@ -1,8 +1,8 @@
 Package: obm
-Title: OpenBioMaps API (v2.x) interface for R
+Title: Interface to 'OpenBioMaps' Data and Services 
 Version: 1.8
 Authors@R: person("Miklós", "Bán", email = "banm@vocs.unideb.hu", role = c("aut", "cre"))
-Description: OAuth2 based API interface for R users to work with data in postgresql database retreive all or selection of data into data.frame and more....
+Description: Provides access to selected functions and data available through any 'OpenBioMaps' <https://openbiomaps.org> server instance. 'OpenBioMaps' is an open-source biodiversity data management platform designed for conservation professionals and researchers. User authentication and access control are handled through 'OpenBioMaps' login credentials. 
 Depends: R (>= 3.1.0)
 License: GPL-3
 LazyData: true

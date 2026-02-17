@@ -18,7 +18,7 @@ utils::globalVariables(c("OBM"))
 #' obm_init('http://localhost/biomaps','butterflies')
 #' }
 #' @export
-obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_version=2.3) {
+obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,api_version=2.3) {
         
     return_val <- TRUE
     domain <- ''
@@ -38,7 +38,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
         url <- paste('http://',url,sep='')
     }
     init_url <- paste(url,'/v',api_version,'/','pds.php',sep='')
-    if (verbose==T) {
+    if (verbose==TRUE) {
         message('Init url: ',init_url)
     }
 
@@ -61,7 +61,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
             }
             cat("\n")
             project <- readline(prompt="Enter project name: ")
-            project <- gsub('(\\w+)\\s+?.*','\\1',project,perl=T)
+            project <- gsub('(\\w+)\\s+?.*','\\1',project,perl=TRUE)
 
         }
         for (i in 1:nrow(h.cl$data)) {
@@ -87,7 +87,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
 
     OBM$pds_url <- paste(domain,'v',api_version,'/pds.php',sep='')
     OBM$token_url <- paste(domain,'oauth/token.php',sep='')
-    if (verbose==T) {
+    if (verbose==TRUE) {
         message('PDS url: ',OBM$pds_url)
         message('Token url: ',OBM$token_url)
     }
@@ -112,7 +112,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
     OBM$client_id <- 'R'
 
     # return init variables
-    if (verbose==T) {
+    if (verbose==TRUE) {
         ls(OBM)
     }
     return(return_val)
@@ -135,8 +135,8 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=F,api_v
 #' token <- obm_auth('foo@google.com','abc123')
 #' }
 #' @export
-obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=F,paranoid=T) {
-    if ( exists('token', envir=OBM ,inherits=F) & exists('time', envir=OBM ,inherits=F) & (username=='' & password=='')) {
+obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$client_id,url=OBM$token_url,verbose=FALSE,paranoid=TRUE) {
+    if ( exists('token', envir=OBM ,inherits=FALSE) & exists('time', envir=OBM ,inherits=FALSE) & (username=='' & password=='')) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -158,7 +158,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             username <- readline(prompt="Enter username (email address): ")
         } 
         if ( password=='' ) {
-            if (paranoid==T) {
+            if (paranoid==TRUE) {
                 password <- get_password()
             } else {
                 password <- readline(prompt="Enter password: ")
@@ -179,10 +179,10 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
             OBM$token <- j
             OBM$time <- unclass(z)
         } else {
-            if ( exists('token', envir=OBM, inherits=F) & !is.null(OBM$token) ) {
+            if ( exists('token', envir=OBM, inherits=FALSE) & !is.null(OBM$token) ) {
                 rm(list=c('token'),envir=OBM)
             }
-            if ( exists('time', envir=OBM, inherits=F)  & !is.null(OBM$time)) {
+            if ( exists('time', envir=OBM, inherits=FALSE)  & !is.null(OBM$time)) {
                 rm(list=c('time'),envir=OBM)
             }
             message("Authentication failed.")
@@ -206,7 +206,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
 #' token <- obm_connect('abcdefghikl123456789')
 #' }
 #' @export
-obm_connect <- function (link='',verbose=F) {
+obm_connect <- function (link='',verbose=FALSE) {
 
     if ( link=='' ) {
         link <- readline(prompt="Paste shared link: ")
@@ -318,7 +318,7 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
     if (scope=='') {
         return ("usage: obm_get(scope,...)")
     }
-    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+    if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -519,7 +519,7 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')
-#'                 ),ncol=5,nrow=2,byrow=T)
+#'                 ),ncol=5,nrow=2,byrow=TRUE)
 #' #colnames(data)<-c("species","nume","place","no","geom")
 #' t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
 #'                      form_header=c('faj','szamossag','hely','egyedszam'))
@@ -530,7 +530,7 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')
-#'                 ),ncol=5,nrow=2,byrow=T)
+#'                 ),ncol=5,nrow=2,byrow=TRUE)
 #' #colnames(data)<-c("species","nume","place","no",'Attach')
 #' t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
 #'                      form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),
@@ -542,7 +542,7 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
     if ( is.null(scope) ) {
         return ("usage: obm_get(scope...)")
     }
-    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+    if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -684,7 +684,7 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
     if (scope=='' || condition == '') {
         return ("usage: obm_set(scope,condition,...)")
     }
-    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+    if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -720,7 +720,7 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' obm_refresh_token(token)
 #' }
 #' @export
-obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,client_id='R',verbose=F) {
+obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,client_id='R',verbose=FALSE) {
     h <- httr::POST(url,body=list(grant_type='refresh_token',refresh_token=token,client_id=client_id))
     j <- httr::content(h, "parsed", "application/json")
     if (exists('access_token',j)) {
@@ -731,10 +731,10 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
             print(j)
         }
     } else {
-        if ( exists('token', envir=OBM, inherits=F) & !is.null(OBM$token)) {
+        if ( exists('token', envir=OBM, inherits=FALSE) & !is.null(OBM$token)) {
             rm(list=c('token'),envir=OBM)
         }
-        if ( exists('time', envir=OBM, inherits=F) & !is.null(OBM$time)) {
+        if ( exists('time', envir=OBM, inherits=FALSE) & !is.null(OBM$time)) {
             rm(list=c('time'),envir=OBM)
         }
         message("Authentication disconnected.")
@@ -761,7 +761,7 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
 #'                WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
 #' }
 #' @export
-obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,database='gisdata') {
+obm_sql_query <- function(sqlcmd,username='',password='',paranoid=TRUE,port=5432,database='gisdata') {
 
 
     if (exists('sqluser',OBM)) {
@@ -803,7 +803,7 @@ obm_sql_query <- function(sqlcmd,username='',password='',paranoid=T,port=5432,da
         username <- readline(prompt="Enter username: ")
     } 
     if ( password=='' ) {
-        if (paranoid==T) {
+        if (paranoid==TRUE) {
             password <- get_password()
         } else {
             password <- readline(prompt="Enter password: ")
@@ -931,7 +931,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
         return ("usage: obm_repo(put|get,...)")
     }
 
-    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+    if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
@@ -974,7 +974,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
 
                     for ( i in 1:length(params$data) ) {
                         x <- rjson::toJSON(params$data[[i]])
-                        writeLines(x, paste('o_',names(params$data)[i],'.json',sep=''), useBytes=T)
+                        writeLines(x, paste('o_',names(params$data)[i],'.json',sep=''), useBytes=TRUE)
                         data_file <- c(data_file, paste(tmp_dir,'/','o_',names(params$data)[i],'.json',sep=''))
                     }
                     setwd("..")
@@ -1179,7 +1179,7 @@ obm_repo <- function (scope=NULL,token=OBM$token,pds_url=OBM$pds_url,data_table=
 
         print (h)
 
-        j <- try(httr::content(h),silent=T)
+        j <- try(httr::content(h),silent=TRUE)
         if (inherits(j, "try-error")) {
             j <- httr::content(h,"text")
         }
@@ -1318,7 +1318,7 @@ obm_computation <- function (action='', token=OBM$token, url=OBM$pds_url, data_f
     if (action=='') {
         return ("usage: obm_computation(action, params=...)")
     }
-    if ( exists('token', envir=OBM, inherits=F) & exists('time', envir=OBM, inherits=F) ) {
+    if ( exists('token', envir=OBM, inherits=FALSE) & exists('time', envir=OBM, inherits=FALSE) ) {
         # auto refresh token 
         z <- Sys.time()
         timestamp <- unclass(z)
