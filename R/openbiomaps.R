@@ -15,7 +15,7 @@ utils::globalVariables(c("OBM"))
 #' obm_init(project='dead_animals')
 #'
 #' #connect on the local server intance to the butterfly database project
-#' \donttest{
+#' \dontrun{
 #' obm_init('http://localhost/biomaps','butterflies')
 #' }
 #' @export
@@ -47,7 +47,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
     h <- httr::POST(init_url,body=list(scope='get_project',value='get_project_list'),encode='form')
     if (httr::status_code(h) != 200) {
         warning(paste("http error: ",httr::status_code(h) ))
-        return FALSE
+        return(FALSE)
     }
     h.content <- httr::content(h,'text')
     h.json <- jsonlite::fromJSON( h.content )
@@ -81,7 +81,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
     }
     if (domain == '') {
         warning(paste("Project ",project,"does not exists! Choose a valid project name."))
-        return FALSE
+        return(FALSE)
     }
 
     protocol <- gsub('(https?)://.*','\\1',domain)
@@ -134,7 +134,7 @@ obm_init <- function (project='',url='openbiomaps.org',scope=c(),verbose=FALSE,a
 #' @keywords auth
 #' @return boolean
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' obm_auth()
 #' token <- obm_auth('foo@google.com','abc123')
 #' }
@@ -206,7 +206,7 @@ obm_auth <- function (username='',password='',scope=OBM$scope,client_id=OBM$clie
 #' @keywords connect auth shared link
 #' @return boolean
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' obm_connect()
 #' token <- obm_connect('abcdefghikl123456789')
 #' }
@@ -280,47 +280,47 @@ get_password <- function() {
 #' @return data.frame or FALSE
 #' @examples
 #' #get data rows from the main table from 39980 to 39988
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_data',condition=list(obm_id = '39980:39988'))
 #' }
 #'
 #' #get rows from the main table where column 'species' is 'Parus palustris'
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_data',condition=list(species = 'Parus palustris'))
 #' }
 #'
 #' #get 100 rows only from filtered query
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_data','limit=100:0',condition=list(species = 'Parus palustris'))
 #' }
 #'
 #' #get all data from the default/main table
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_data','*')
 #' }
 #'
 #' #get data from a non-default table
-#' \donttest{
+#' \dontrun{
 #' obm_get('get_data','*',table='additional_data')
 #' }
 #'
 #' #get list of available forms
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_form_list')
 #' }
 #'
 #' #get data of a form
-#' \donttest{
+#' \dontrun{
 #' data <- obm_get('get_form_data',73)
 #' }
 #'
 #' #perform strored query 'last' is a custom label
-#' \donttest{
+#' \dontrun{
 #' obm_get('get_report','last')
 #' }
 #'
 #' #get list of available tables in the project
-#' \donttest{
+#' \dontrun{
 #' obm_get('get_tables')
 #' }
 #' @export
@@ -432,7 +432,7 @@ obm_get <- function (scope='',control_condition=NULL,condition=NULL,token=OBM$to
 #' @keywords as obm_class
 #' @return object
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' as.obm_class(DF)
 #' }
 #' @export
@@ -447,7 +447,7 @@ as.obm_class <- function(x) {
 #' @keywords fill form
 #' @return data.frame
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data.frame <- obm_fill_form(obm_class)
 #' }
 #' @importFrom utils edit
@@ -468,7 +468,7 @@ obm_fill_form <- function(x) {
 #' @keywords summary
 #' @return object
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' summary(obm_data)
 #' }
 #' @export
@@ -494,7 +494,7 @@ summary.obm_class <- function(object, ...) {
 #' @keywords as.data.frame
 #' @return data.frame
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' as.data.frame(obm_data)
 #' }
 #' @export
@@ -520,7 +520,7 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' @return data.frame
 #' @examples
 #' #using own list of columns
-#' \donttest{
+#' \dontrun{
 #' obm_get('get_form_list')
 #' form <- obm_get('get_form_data',57)
 #' columns <- unlist(form[,'column'])
@@ -528,12 +528,12 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' }
 #'
 #' #using default columns list:
-#' \donttest{
+#' \dontrun{
 #' t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 #' }
 #'
 #' #JSON upload
-#' \donttest{
+#' \dontrun{
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')
@@ -544,7 +544,7 @@ as.data.frame.obm_class <- function(x, row.names = NULL, optional = FALSE, ...) 
 #' }
 #' 
 #' #with attached file
-#' \donttest{
+#' \dontrun{
 #' data <- matrix(c(
 #'                  c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
 #'                  c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')
@@ -696,7 +696,7 @@ obm_put <- function (scope=NULL,form_header=NULL,data_file=NULL,media_file=NULL,
 #' @keywords set
 #' @examples
 #' #automatically join tables
-#' \donttest{
+#' \dontrun{
 #' data <- obm_set('set_join',c('dead_animals','dead_animals_history'))
 #' }
 #' @export
@@ -736,7 +736,7 @@ obm_set <- function (scope='',condition='',token=OBM$token,url=OBM$pds_url) {
 #' @param verbose, default is FALSE
 #' @keywords refresh
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' obm_refresh_token(token)
 #' }
 #' @export
@@ -775,7 +775,7 @@ obm_refresh_token <- function(token=OBM$token$refresh_token,url=OBM$token_url,cl
 #' @param database remote database, default is gisdata
 #' @keywords postgres
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days 
 #'                FROM nestboxes 
 #'                WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
@@ -867,61 +867,61 @@ randtext <- function(n = 5000) {
 #' @return text
 #' @examples
 #' #Getting server conf
-#' \donttest{
+#' \dontrun{
 #' obm_repo('get',params=list(server_conf=1))
 #' }
 #'
 #' #Set the default server/project-repo for each of the following operations 
 #' #   - default is 0
 #' #   - set possible id's from server_conf query above
-#' \donttest{
+#' \dontrun{
 #' obm_repo('set',params=list(REPO=x))
 #' obm_repo('set',params=list(REPO=x, PARENT=xxx))
 #' }
 #'
 #' #Listing dataverse      
-#' \donttest{
+#' \dontrun{
 #' obm_repo('get',params=list(type='dataverse',contents=1))
 #' obm_repo('get',params=list(type='dataverse'))
 #' }
 #'
 #' #Getting content of the named dataverse
-#' \donttest{
+#' \dontrun{
 #' obm_repo('get',params=list(id='DINPI'))
 #' }
 #'
 #' #Get JSON Representation of a Dataset
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('get',params=list(type='datasets',persistentUrl='https://doi.org/xxx/xxx/xxx'))
 #' res <- obm_repo('get',params=list(type='datasets',id=xxx))
 #' repo_summary(res)
 #' }
 #'
 #' #Get versions of dataset
-#' \donttest{
+#' \dontrun{
 #' obm_repo('get',params=list(type='datasets',id=42,version=''))
 #' obm_repo('get',params=list(type='datasets',id=42,version=':draft'))
 #' }
 #'
 #' #Get files of dataset
-#' \donttest{
+#' \dontrun{
 #' obm_repo('get',params=list(type='datasets',id=42,files='',version=''))
 #' }
 #'
 #' #Get a file
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('get',params=list(type='datafile',id=83))
 #' res <- obm_repo('get',params=list(type='datafile',id=83,version=':draft'))
 #' }
 #'
 #' #Create a dataverse
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('put',params=list(type='dataverse'))
 #' repo_summary(res)
 #' }
 #'
 #' #Create a dateset
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('put',params=list(type='datasets',dataverse=''))
 #' repo_summary(res)
 #' }
@@ -938,12 +938,12 @@ randtext <- function(n = 5000) {
 #' #repo_summary(res)
 #'
 #' #Delete file
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('delete',params=list(type='datafile',id=...,PARENT_DATAVERSE=...))
 #' }
 #'
 #' #Set settings
-#' \donttest{
+#' \dontrun{
 #' res <- obm_repo('set',params=list(type='dataset',id=...))
 #' }
 #' @export
@@ -1335,7 +1335,7 @@ repo_summary <- function(x=NULL) {
 #' @return boolean
 #' @examples
 #' # Manage computations
-#' \donttest{
+#' \dontrun{
 #' results <- obm_computation('post', 'afile.R', params = c())
 #' }
 #' @export

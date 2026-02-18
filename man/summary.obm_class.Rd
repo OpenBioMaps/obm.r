@@ -11,6 +11,9 @@
 
 \item{...}{Further arguments passed to or from other methods.}
 }
+\value{
+object
+}
 \description{
 Create a standard summary for an \code{obm_class} S3 object.
 }

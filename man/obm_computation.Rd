@@ -26,6 +26,9 @@ obm_computation(
 
 \item{config_file}{is The computation_conf.yml file}
 }
+\value{
+boolean
+}
 \description{
 This function allows you to get data from an OpenBioMaps server.
 }

@@ -41,6 +41,9 @@ obm_put(
 
 \item{tracklog}{a GeoJSON tracklog string}
 }
+\value{
+data.frame
+}
 \description{
 This function allows put data into an OpenBioMaps server.
 }
@@ -63,7 +66,7 @@ t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 data <- matrix(c(
                  c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
                  c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')
-                ),ncol=5,nrow=2,byrow=T)
+                ),ncol=5,nrow=2,byrow=TRUE)
 #colnames(data)<-c("species","nume","place","no","geom")
 t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
                      form_header=c('faj','szamossag','hely','egyedszam'))
@@ -74,7 +77,7 @@ t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
 data <- matrix(c(
                  c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
                  c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')
-                ),ncol=5,nrow=2,byrow=T)
+                ),ncol=5,nrow=2,byrow=TRUE)
 #colnames(data)<-c("species","nume","place","no",'Attach')
 t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
                      form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),

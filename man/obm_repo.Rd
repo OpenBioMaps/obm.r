@@ -23,6 +23,9 @@ obm_repo(
 
 \item{params}{list which contains parameters for repozitorium}
 }
+\value{
+text
+}
 \description{
 This function allows put data into a repozitorium.
 }

@@ -9,8 +9,11 @@ repo_summary(x = NULL)
 \arguments{
 \item{x}{repo output object}
 }
+\value{
+text
+}
 \description{
-This is repozitorium helper function
+This is repozitorium helper function 
 Creating readable labels, notes and summary of repo output
 }
 \keyword{label}

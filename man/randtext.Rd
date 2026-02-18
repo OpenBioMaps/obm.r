@@ -9,6 +9,9 @@ randtext(n = 5000)
 \arguments{
 \item{n}{replication}
 }
+\value{
+text
+}
 \description{
 This function allows put data into a repozitorium.
 }
