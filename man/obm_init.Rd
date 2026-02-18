@@ -8,7 +8,7 @@ obm_init(
   project = "",
   url = "openbiomaps.org",
   scope = c(),
-  verbose = FALSE,
+  verbose = F,
   api_version = 2.3
 )
 }
@@ -22,9 +22,6 @@ obm_init(
 \item{verbose}{print some messages}
 
 \item{api_version}{API version}
-}
-\value{
-boolean
 }
 \description{
 This function is initiating an OBM connection.

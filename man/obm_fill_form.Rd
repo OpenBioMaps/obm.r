@@ -9,9 +9,6 @@ obm_fill_form(x)
 \arguments{
 \item{x}{obm_class}
 }
-\value{
-data.frame
-}
 \description{
 Offline data editor
 }

@@ -4,15 +4,12 @@
 \alias{obm_connect}
 \title{Connect by shared link function}
 \usage{
-obm_connect(link = "", verbose = FALSE)
+obm_connect(link = "", verbose = F)
 }
 \arguments{
 \item{link}{an url link}
 
 \item{verbose}{increase verbosity}
-}
-\value{
-boolean
 }
 \description{
 This function allows you to connect to an OBM server with a shared link

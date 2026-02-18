@@ -9,9 +9,6 @@ as.obm_class(x)
 \arguments{
 \item{x}{data.frame}
 }
-\value{
-object
-}
 \description{
 This class function creates an obm_class
 }

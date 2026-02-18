@@ -15,9 +15,6 @@
 
 \item{...}{Additional arguments (ignored).}
 }
-\value{
-data.frame
-}
 \description{
 Extract the underlying data frame from an \code{obm_class} S3 object.
 }

@@ -26,9 +26,6 @@ obm_get(
 
 \item{table}{optional table from project}
 }
-\value{
-data.frame or FALSE
-}
 \description{
 This function allows you to get data from an OpenBioMaps server.
 }

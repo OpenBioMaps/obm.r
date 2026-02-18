@@ -8,7 +8,7 @@ obm_refresh_token(
   token = OBM$token$refresh_token,
   url = OBM$token_url,
   client_id = "R",
-  verbose = FALSE
+  verbose = F
 )
 }
 \arguments{

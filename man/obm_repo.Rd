@@ -23,9 +23,6 @@ obm_repo(
 
 \item{params}{list which contains parameters for repozitorium}
 }
-\value{
-text
-}
 \description{
 This function allows put data into a repozitorium.
 }
@@ -97,8 +94,7 @@ repo_summary(res)
 #Add object as file to dataset (referenced by id or persistentUrl)
 #- automatically convert data object to JSON
 #- returning with the last file's state
-#res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, 
-#                    data=list(results=res.list,init_params=init.df)))
+#res <- obm_repo('put',params=list(type='datafile', id= | persistentUrl=, data=list(results=res.list,init_params=init.df)))
 #repo_summary(res)
 
 #Delete file

@@ -8,7 +8,7 @@ obm_sql_query(
   sqlcmd,
   username = "",
   password = "",
-  paranoid = TRUE,
+  paranoid = T,
   port = 5432,
   database = "gisdata"
 )

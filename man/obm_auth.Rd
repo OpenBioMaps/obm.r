@@ -10,8 +10,8 @@ obm_auth(
   scope = OBM$scope,
   client_id = OBM$client_id,
   url = OBM$token_url,
-  verbose = FALSE,
-  paranoid = TRUE
+  verbose = F,
+  paranoid = T
 )
 }
 \arguments{
@@ -28,9 +28,6 @@ obm_auth(
 \item{verbose}{print some messages}
 
 \item{paranoid}{hide password while typing (on Linux)}
-}
-\value{
-boolean
 }
 \description{
 This function allows you to connect to and OBM server.
