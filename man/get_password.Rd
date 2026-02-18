@@ -2,12 +2,12 @@
 % Please edit documentation in R/openbiomaps.R
 \name{get_password}
 \alias{get_password}
-\title{unix like password function
-used in obm_auth()}
+\title{Password reader helper function}
 \usage{
 get_password()
 }
 \description{
-unix like password function
 used in obm_auth()
+Not intended for direct user use.
 }
+\keyword{internal}

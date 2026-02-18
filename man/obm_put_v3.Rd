@@ -2,12 +2,15 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_put_v3}
 \alias{obm_put_v3}
-\title{obm_put_v3 Helper
-Internal function to handle API v3 puts}
+\title{Put data helper function for API v3}
 \usage{
-obm_put_v3(scope, form_id, form_data, tracklog, token, url, verbose = F)
+obm_put_v3(scope, form_id, form_data, media_file, token, url, verbose = FALSE)
+}
+\value{
+json results object or boolean
 }
 \description{
-obm_put_v3 Helper
 Internal function to handle API v3 puts
+Not intended for direct user use.
 }
+\keyword{internal}

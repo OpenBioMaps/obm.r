@@ -2,21 +2,30 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_connect}
 \alias{obm_connect}
-\title{Connect by shared link function}
+\title{Connect to a server with a shared link}
 \usage{
-obm_connect(link = "", verbose = F)
+obm_connect(link = "", verbose = FALSE)
 }
 \arguments{
-\item{an}{url link}
+\item{link}{an url link}
+
+\item{verbose}{print verbose feedback messages - default is FALSE}
+}
+\value{
+boolean
 }
 \description{
-This function allows you to connect to an OBM server with a shared link
+This function allows to connect to an OBM server with a shared link
 It using client_credentials authentication, so it is returning an access_token
 Return an oauth token
 }
 \examples{
+\donttest{
+# Interactive connect
 obm_connect()
+# Non interactive connect
 token <- obm_connect('abcdefghikl123456789')
+}
 }
 \keyword{auth}
 \keyword{connect}

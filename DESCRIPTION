@@ -1,11 +1,11 @@
 Package: obm
 Title: OpenBioMaps API interface for R
-Version: 1.7
+Version: 2.0
 Authors@R: person("Miklós", "Bán", email = "banm@vocs.unideb.hu", role = c("aut", "cre"))
 Description: OAuth2 based API interface for R users to work with data in postgresql database retreive all or selection of data into data.frame and more....
 Depends: R (>= 3.1.0)
-License: GPL3
+License: GPL-3
 LazyData: true
-Imports: httr, rjson, jsonlite, RPostgreSQL
+Imports: httr, rjson, jsonlite, RPostgreSQL, DBI, utils
 Encoding: UTF-8
 RoxygenNote: 7.3.3

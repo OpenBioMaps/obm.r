@@ -8,22 +8,35 @@ obm_sql_query(
   sqlcmd,
   username = "",
   password = "",
-  paranoid = T,
+  paranoid = TRUE,
   port = 5432,
   database = "gisdata"
 )
 }
 \arguments{
-\item{sqlcmd}{username most probably automatically set by create_pg_user module
-password most probably automatically set by create_pg_user module
-paranoid password promt type
-postgres server port, default is 5432
-database remote database, default is gisdata}
+\item{sqlcmd}{a valid SQL command}
+
+\item{username}{most probably automatically set by create_pg_user module}
+
+\item{password}{most probably automatically set by create_pg_user module}
+
+\item{paranoid}{password prompt type}
+
+\item{port}{postgres server port, default is 5432}
+
+\item{database}{remote database name, default is gisdata}
+}
+\value{
+sql data object or boolean
 }
 \description{
 It is a simple SQL Query interface function
 }
 \examples{
-obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days FROM nestboxes WHERE enddate IS NOT NULL AND startdate IS NOT NULL ORDER BY days")
+\donttest{
+obm_sql_query("SELECT DATE_PART('day', enddate::timestamp - startdate::timestamp) AS days 
+               FROM nestboxes WHERE enddate IS NOT NULL AND startdate IS NOT NULL 
+               ORDER BY days")
+}
 }
 \keyword{postgres}

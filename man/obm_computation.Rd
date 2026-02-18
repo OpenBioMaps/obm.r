@@ -6,8 +6,6 @@
 \usage{
 obm_computation(
   action = "",
-  token = OBM$token,
-  url = OBM$pds_url,
   data_files = NULL,
   params = NULL,
   config_file = NULL
@@ -16,21 +14,22 @@ obm_computation(
 \arguments{
 \item{action}{post, get-results, get-status}
 
-\item{token}{obm_init() provide it}
-
-\item{url}{obm_init() provide it}
-
 \item{data_files}{list of files to sending}
 
 \item{params}{computation control params}
 
 \item{config_file}{is The computation_conf.yml file}
 }
+\value{
+data frame or boolean
+}
 \description{
 This function allows you to get data from an OpenBioMaps server.
 }
 \examples{
-Manage computational packs
+\donttest{
+# Manage computational packs
 results <- obm_computation('post','afile.R',params->c())
+}
 }
 \keyword{computation}

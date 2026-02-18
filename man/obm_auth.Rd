@@ -2,38 +2,33 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_auth}
 \alias{obm_auth}
-\title{Auth Function}
+\title{Log in to an OpenBioMaps server}
 \usage{
-obm_auth(
-  username = "",
-  password = "",
-  scope = OBM$scope,
-  client_id = OBM$client_id,
-  url = OBM$token_url,
-  verbose = F,
-  paranoid = T
-)
+obm_auth(username = "", password = "", verbose = FALSE, paranoid = TRUE)
 }
 \arguments{
 \item{username}{Your OBM username (email)}
 
 \item{password}{Your password}
 
-\item{scope}{vector for OAuth2 scopes}
+\item{verbose}{print verbose feedback messages - default is FALSE}
 
-\item{client_id}{Default is R}
-
-\item{url}{OAuth2 token url obm_init() provide it}
-
-\item{verbose}{print some messages}
-
-\item{paranoid}{hide password while typing (on Linux)}
+\item{paranoid}{hide password while typing (on Linux) - default is TRUE}
+}
+\value{
+true if successful and false if not
 }
 \description{
 This function allows you to connect to and OBM server.
 }
 \examples{
+\dontrun{
+# default interactive authentication
 obm_auth()
-token <- obm_auth('foo@google.com','abc123')
+
+# authentication with username and password
+obm_auth('foo@google.com','abc123')
 }
-\keyword{auth}
+}
+\keyword{authentication}
+\keyword{login}

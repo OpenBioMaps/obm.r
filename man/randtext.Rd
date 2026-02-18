@@ -2,15 +2,14 @@
 % Please edit documentation in R/openbiomaps.R
 \name{randtext}
 \alias{randtext}
-\title{Helper Function}
+\title{Random text generator helper function}
 \usage{
 randtext(n = 5000)
 }
-\arguments{
-\item{n}{replication}
+\value{
+text string
 }
 \description{
-This function allows put data into a repozitorium.
+Not intended for direct user use.
 }
-\keyword{random}
-\keyword{text}
+\keyword{internal}

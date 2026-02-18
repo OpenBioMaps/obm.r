@@ -2,7 +2,7 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_put}
 \alias{obm_put}
-\title{Put Function}
+\title{Put data unsing obm forms}
 \usage{
 obm_put(
   scope = NULL,
@@ -12,14 +12,11 @@ obm_put(
   form_id = "",
   form_data = "",
   soft_error = "",
-  token = OBM$token,
-  pds_url = OBM$pds_url,
-  data_table = OBM$project,
-  tracklog = NULL
+  data_table = NULL
 )
 }
 \arguments{
-\item{scope}{currently put_data supported. For v3, 'tracklog' can also be used here or via the tracklog parameter.}
+\item{scope}{currently put_data supported.}
 
 \item{form_header}{database column names vector, if missing default is the full list from the form}
 
@@ -33,38 +30,46 @@ obm_put(
 
 \item{soft_error}{JSON array of 'Yes' strings (or translations of it) to skip soft error messages (API v2)}
 
-\item{token}{OBM$token}
-
-\item{pds_url}{OBM$pds_url}
-
-\item{data_table}{OBM$project}
-
-\item{tracklog}{optional tracklog data (list or JSON) for API v3}
+\item{data_table}{a database table name}
+}
+\value{
+json or boolean
 }
 \description{
 This function allows put data into an OpenBioMaps server.
-For API v3 (api_version >= 3.0), 'put_data' and 'tracklog' are supported.
-Note: In API v3, 'put_data' currently supports single observation uploads only.
+For API v3 (api_version >= 3.0), 'put_data' is supported.
+Note: In API v3, 'put_data' currently supports single observation upload only.
 }
 \examples{
-using own list of columns
-  obm_get('get_form_list')
-  form <- obm_get('get_form_data',57)
-  columns <- unlist(form[,'column'])
-  t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
+\donttest{
+# Using own list of columns
+obm_get('get_form_list')
+form <- obm_get('get_form_data',57)
+#columns <- unlist(form[,'column'])
 
-using default columns list:
-  t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
+#t <- obm_put('put_data',columns[1:3],form_id=57,data_file='~/teszt2.csv')
 
-JSON upload
-  data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),ncol=5,nrow=2,byrow=T)
-  #colnames(data)<-c("species","nume","place","no","geom")
-  t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam'))
+#Using default columns list:
+#t <- obm_put(scope='put_data',form_id=57,csv_file='~/teszt2.csv')
 
-with attached file
-  data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),ncol=5,nrow=2,byrow=T)
-  #colnames(data)<-c("species","nume","place","no",'Attach')
-  t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),media_file=c('~/szamok.odt','~/a.pdf'))
+#JSON upload
+data <- matrix(c(
+                 c("Tringa totanus",'egyed',"AWBO",'10','POINT(47.1 21.3)'),
+                 c("Tringa flavipes",'egyed',"BYWO",'2','POINT(47.3 21.4)')),
+               ncol=5,nrow=2,byrow=TRUE)
+colnames(data)<-c("species","nume","place","no","geom")
+t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
+               form_header=c('faj','szamossag','hely','egyedszam'))
 
+#With attached file
+data <- matrix(c(c("Tringa totanus",'egyed',"AWBO",'10','szamok.odt'),
+                 c("Tringa flavipes",'egyed',"BYWO",'2','a.pdf')),
+               ncol=5,nrow=2,byrow=TRUE)
+colnames(data)<-c("species","nume","place","no",'Attach')
+#t <- obm_put(scope='put_data',form_id=57,form_data=as.data.frame(data),
+#               form_header=c('faj','szamossag','hely','egyedszam','obm_files_id'),
+#               media_file=c('~/szamok.odt','~/a.pdf'))
+}
 }
 \keyword{put}
+\keyword{upload}

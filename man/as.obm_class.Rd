@@ -2,18 +2,14 @@
 % Please edit documentation in R/openbiomaps.R
 \name{as.obm_class}
 \alias{as.obm_class}
-\title{as. class Function}
+\title{Internal function to create obm_class from data.frame}
 \usage{
 as.obm_class(x)
 }
-\arguments{
-\item{x}{data.frame}
+\value{
+structured data
 }
 \description{
-This class function creates an obm_class
+This internal function creates an obm_class
 }
-\examples{
-as.obm_class(DF)
-}
-\keyword{as}
-\keyword{obm_class}
+\keyword{internal}

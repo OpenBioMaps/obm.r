@@ -2,28 +2,29 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_refresh_token}
 \alias{obm_refresh_token}
-\title{Auth Function}
+\title{Refresh an expired OBM access token}
 \usage{
 obm_refresh_token(
-  token = OBM$token$refresh_token,
-  url = OBM$token_url,
-  client_id = "R",
-  verbose = F
+  token = NULL,
+  url = get_obm("token_url"),
+  client_id = get_obm("client_id", "R"),
+  verbose = FALSE
 )
 }
 \arguments{
-\item{url}{token url: obm_init() provide it}
+\item{token}{Optional explicit refresh token (defaults to stored one)}
 
-\item{client_id, }{default is R}
+\item{url}{OAuth2 token endpoint URL (from obm_init())}
 
-\item{verbose, }{default is FALSE}
+\item{client_id}{OAuth2 client identifier ("R" by default)}
 
-\item{refresh}{token}
+\item{verbose}{Print HTTP and token details}
+}
+\value{
+Logical TRUE if token refreshed successfully, FALSE otherwise
 }
 \description{
-This function allows you to refresh your OAuth2 token. It is usually a hidden function
+This function requests a new access token using the stored refresh token.
+It should normally be called internally by other OBM functions when
+the current token has expired.
 }
-\examples{
-obm_refresh_token(token)
-}
-\keyword{refresh}

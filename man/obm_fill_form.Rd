@@ -2,18 +2,23 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_fill_form}
 \alias{obm_fill_form}
-\title{obm_form offline form fill function}
+\title{Offline form fill function}
 \usage{
 obm_fill_form(x)
 }
 \arguments{
 \item{x}{obm_class}
 }
+\value{
+data.frame
+}
 \description{
-Offline data editor
+Offline data editor, this function is not ready
 }
 \examples{
+\dontrun{
 data.frame <- obm_fill_form(obm_class)
+}
 }
 \keyword{fill}
 \keyword{form}

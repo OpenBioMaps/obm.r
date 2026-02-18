@@ -4,23 +4,24 @@
 \alias{obm_set}
 \title{Set Function}
 \usage{
-obm_set(scope = "", condition = "", token = OBM$token, url = OBM$pds_url)
+obm_set(scope = "", condition = "")
 }
 \arguments{
 \item{scope}{Which scope? e.g. set_join}
 
 \item{condition}{A text condition based on column in your table}
-
-\item{token}{obm_init() provide it}
-
-\item{url}{obm_init() provide it}
+}
+\value{
+list, json or boolean
 }
 \description{
-Experimental function!
+Experimental function in APIv2!
 This function allows you to set rules for obm_get.
 }
 \examples{
-automatically join tables
+\donttest{
+# automatically join tables
 data <- obm_set('set_join',c('dead_animals','dead_animals_history'))
+}
 }
 \keyword{set}

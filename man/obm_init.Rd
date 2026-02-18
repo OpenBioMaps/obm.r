@@ -2,36 +2,43 @@
 % Please edit documentation in R/openbiomaps.R
 \name{obm_init}
 \alias{obm_init}
-\title{Init Function}
+\title{Initialise connection to an OpenBioMaps server}
 \usage{
 obm_init(
   project = "",
   url = "openbiomaps.org",
   scope = c(),
-  verbose = F,
-  api_version = 2.3
+  verbose = FALSE,
+  api_version = 3
 )
 }
 \arguments{
-\item{project}{Which project?}
+\item{project}{Which project you would like to connect? It has a short name.}
 
-\item{url}{project server domain DEFAULT is openbiomaps.org}
+\item{url}{project server's web url DEFAULT is https://openbiomaps.org}
 
 \item{scope}{vector of required scopes. DEFAULT is ok usually}
 
-\item{verbose}{print some messages}
+\item{verbose}{print verbose feedback messages - default is FALSE}
 
 \item{api_version}{API version. 3.0 or higher enables the new REST and GraphQL API.}
+}
+\value{
+boolean
 }
 \description{
 This function is initiating an OBM connection.
 }
 \examples{
-# connect to a database on the default server (openbiomaps.org) with API v2
+\donttest{
+# connect with API v3 to the dead_animals project on the default openbiomaps.org server
 obm_init(project='dead_animals')
-# connect with API v3 to the dead_animals project
-obm_init(project='dead_animals', api_version=3.0)
+# connect to a database on the default server (openbiomaps.org) with API v2.3
+obm_init(project='dead_animals', api_version=2.3)
 # connect on the local server instance to the butterfly database project
-obm_init('http://localhost/biomaps','butterflies')
+obm_init(url='http://localhost/biomaps',project='butterflies')
 }
-\keyword{init}
+}
+\keyword{connect}
+\keyword{initiate}
+\keyword{openbiomaps}
